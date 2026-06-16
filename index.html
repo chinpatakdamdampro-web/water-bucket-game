@@ -24,19 +24,20 @@ body {
   display:flex; justify-content:space-between; align-items:center;
   padding:14px 20px;
   padding-top:max(env(safe-area-inset-top),14px);
-  background:rgba(10,22,40,0.92); z-index:10;
+  background:rgba(10,22,40,0.88); z-index:10;
   border-bottom:1px solid rgba(100,180,255,0.15);
-  backdrop-filter: blur(8px);
 }
 .hud-item { display:flex; flex-direction:column; align-items:center; }
 .hud-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(160,210,255,0.6); font-weight:500; }
 .hud-value { font-size:22px; font-weight:700; color:#fff; line-height:1.1; }
+.hud-pesos-wrapper { display:flex; align-items:center; gap:4px; }
+.hud-pesos-icon { width:18px; height:18px; object-fit:contain; }
 .hud-value.pesos { color:#ffd700; }
 .hud-lives-display { display:flex; align-items:center; gap:5px; margin-top:2px; }
 .hud-lives-count { font-size:18px; font-weight:800; color:#ff6b6b; }
 .hud-lives-label { font-size:10px; color:rgba(255,107,107,0.7); text-transform:uppercase; letter-spacing:1px; }
 
-/* ── POWERUP OVERLAY ── */
+/* ── LARGE MOBILE-FRIENDLY POWERUP CONTROLLER OVERLAY ── */
 #powerup-container {
   position: fixed;
   top: max(env(safe-area-inset-top), 86px);
@@ -60,10 +61,19 @@ body {
   position: relative;
   transition: transform 0.1s;
 }
-.powerup-btn:active { transform: scale(0.9); }
-.powerup-btn.disabled { border-color: rgba(160,210,255,0.2); opacity: 0.4; cursor: not-allowed; }
-.powerup-btn img { width: 42px; height: 42px; object-fit: contain; }
-
+.powerup-btn:active {
+  transform: scale(0.9);
+}
+.powerup-btn.disabled {
+  border-color: rgba(160,210,255,0.2);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.powerup-btn img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
 .powerup-count {
   position: absolute;
   bottom: -2px;
@@ -79,22 +89,22 @@ body {
 }
 .powerup-btn.active-pulse {
   border-color: #ffd700;
-  animation: pulseGlow 0.6s infinite alternate;
+  animation: pulseGlow 0.8s infinite alternate;
 }
 @keyframes pulseGlow {
   0% { box-shadow: 0 0 4px rgba(255,215,0,0.4); }
-  100% { box-shadow: 0 0 22px rgba(255,215,0,0.9); }
+  100% { box-shadow: 0 0 20px rgba(255,215,0,0.9); }
 }
 
 canvas { display:block; touch-action:none; }
 
-/* ── SCREENS ── */
+/* ── SCREENS (overlay) ── */
 .screen {
   position:fixed; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   z-index:20; padding:24px;
   padding-bottom:max(env(safe-area-inset-bottom),24px);
-  background:rgba(8, 16, 28, 0.97);
+  background:rgba(10,22,40,0.96);
 }
 .screen.hidden { display:none; }
 
@@ -110,8 +120,8 @@ canvas { display:block; touch-action:none; }
 }
 .menu-pesos-badge {
   display:flex; align-items:center; gap:8px;
-  background:rgba(255,215,0,0.08);
-  border:1px solid rgba(255,215,0,0.2);
+  background:rgba(255,215,0,0.1);
+  border:1px solid rgba(255,215,0,0.25);
   border-radius:12px; padding:10px 18px; margin-bottom:32px;
 }
 .menu-pesos-badge img { width:22px; height:22px; object-fit:contain; }
@@ -124,28 +134,27 @@ canvas { display:block; touch-action:none; }
   border:none; border-radius:50px; padding:16px 52px;
   font-size:18px; font-weight:700; color:#fff; cursor:pointer;
   -webkit-user-select:none; user-select:none; min-height:54px; width:220px;
-  text-align:center; box-shadow: 0 4px 14px rgba(2, 136, 209, 0.4);
+  text-align:center;
 }
-
-/* POLISHED: Reconfigured shop button to be a sleek rectangle with reduced thickness, perfectly aligned to Play */
 .btn-shop {
   background:transparent;
   border:none;
-  padding:0;
-  cursor:pointer;
-  margin-top:16px; 
-  height:44px; 
-  width:220px;
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
+  border-radius:50px; padding:13px 36px;
+  font-size:18px; font-weight:600; color:rgba(255,215,100,0.85);
+  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
   -webkit-user-select:none; user-select:none;
 }
 .btn-shop img { 
-  width: 100%;           
-  height: 100%;          
-  object-fit: fill;
-  border-radius: 4px; /* Pure crisp structural corners */
+  width: 220px;           
+  height: 60px;          
+  object-fit: contain;
+}
+.btn-shop.icon-only { 
+  font-size: 0;          
+  padding: 16px 52px;    
+  min-height: 56px;      
+  width: auto;           
 }
 
 .btn-secondary {
@@ -156,7 +165,7 @@ canvas { display:block; touch-action:none; }
   cursor:pointer; margin-top:12px; min-height:48px; width:220px;
   -webkit-user-select:none; user-select:none;
 }
-.drops-tip { margin-top:24px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; line-height:1.4; }
+.drops-tip { margin-top:20px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; }
 
 /* ── CREDIT ── */
 .credit { margin-top:28px; display:flex; align-items:center; gap:4px; }
@@ -167,8 +176,7 @@ canvas { display:block; touch-action:none; }
   font-size:22px; font-weight:900;
   background:linear-gradient(135deg,#ffd700,#ff9800);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  background-clip:text;
-  font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
+  background-clip:text; font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
 }
 
 /* ── GAME OVER SCREEN ── */
@@ -201,7 +209,7 @@ canvas { display:block; touch-action:none; }
 .shop-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.18; border-radius:20px; }
 .shop-items { position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; }
 
-.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.85); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
+.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
 .shop-item.owned { border-color:rgba(79,195,247,0.4); }
 .shop-item-icon {
   width:54px; height:54px; border-radius:10px;
@@ -247,7 +255,10 @@ canvas { display:block; touch-action:none; }
   </div>
   <div class="hud-item">
     <span class="hud-label">Pesos</span>
-    <span class="hud-value pesos" id="hud-pesos">0</span>
+    <div class="hud-pesos-wrapper">
+      <img src="coin.png" alt="" class="hud-pesos-icon" id="hud-coin-img" onerror="this.style.display='none'">
+      <span class="hud-value pesos" id="hud-pesos">0</span>
+    </div>
   </div>
 </div>
 
@@ -270,10 +281,10 @@ canvas { display:block; touch-action:none; }
     <span class="pesos-label">Total Pesos</span>
   </div>
   <button class="btn-primary" id="btn-play">Play</button>
-  <button class="btn-shop" id="btn-open-shop" title="Open Shop">
+  <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
     <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
-  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar activates Time Freeze.</div>
+  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar uses Time Stop.</div>
   <div class="credit">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
@@ -366,76 +377,54 @@ async function loadProgress() {
 }
 
 /* ════════════════════════════════════════════
-   AUDIO SYSTEM (FIXED: Zero-Delay Execution)
+   AUDIO SYSTEM
    ════════════════════════════════════════════ */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let audioBuffer = null;
-
-// Preload audio array-buffers directly on boot channel to eliminate runtime delays
-async function preloadAudio() {
+function playFallbackTimeStopSound() {
   try {
-    const response = await fetch('timestop.mp3');
-    const arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  } catch (e) {
-    console.log("Synthesized fallback ready.");
-  }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  } catch(e){}
 }
 
 function playTimeStopAudio() {
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  
-  if (audioBuffer) {
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioCtx.destination);
-    source.start(0);
-    return;
-  }
-  
-  // Instant clean procedural alternative channel if mp3 fails to resolve
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 Chord element
-    osc.frequency.exponentialRampToValueAtTime(146.83, audioCtx.currentTime + 0.35);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e){}
+  const audio = new Audio('timestop.mp3');
+  audio.play().catch(() => {
+    playFallbackTimeStopSound();
+  });
 }
 
 /* ════════════════════════════════════════════
    GAME STATE & CONFIG
    ════════════════════════════════════════════ */
-// FIXED: Rebranded tier arrays matching requested slow lingering dynamic lengths
 const UPGRADE_TIERS = [
-  { level: 1, cost: 100, slowDuration: 6000, desc: "Increases lingering slomo window from 5s to 6s" },
-  { level: 2, cost: 250, slowDuration: 7000, desc: "Increases lingering slomo window from 6s to 7s" },
-  { level: 3, cost: 500, slowDuration: 8000, desc: "Increases lingering slomo window from 7s to 8s" },
-  { level: 4, cost: 1000, slowDuration: 9000, desc: "Increases lingering slomo window from 8s to 9s" }
+  { level: 1, cost: 100, duration: 5000, desc: "Upgrades time stop from 4s to 5s" },
+  { level: 2, cost: 250, duration: 6000, desc: "Upgrades time stop from 5s to 6s" },
+  { level: 3, cost: 500, duration: 7000, desc: "Upgrades time stop from 6s to 7s" },
+  { level: 4, cost: 1000, duration: 8000, desc: "Upgrades time stop from 7s to 8s" }
 ];
-
 let persist = { 
   totalPesos: 0, 
   purchases: [],
   timestopCount: 0,
   timestopLevel: 0
 };
-
 let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
 let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
 
-// Power-up Time Execution Channels
+// Time Stop States
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
-let postTimeStopSlowTimer = 0;
 
 /* ════════════════════════════════════════════
    CANVAS & TEXTURES
@@ -444,9 +433,9 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
 
-// FIXED: Adjusted bucket proportions to look elongated and realistic
-const BUCKET_H = 96; 
-const BUCKET_W_RATIO = 0.22; 
+// Dimensions & Render adjustments
+const BUCKET_H = 82;
+const BUCKET_W_RATIO = 0.24;
 let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
 let drops = [], particles = [];
 
@@ -467,7 +456,7 @@ function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
   bucket.w = W * BUCKET_W_RATIO;
-  bucket.y = H - 130;
+  bucket.y = H - 110;
   if (!gameRunning) {
     bucket.x = W / 2 - bucket.w / 2;
     bucket.targetX = bucket.x;
@@ -501,11 +490,16 @@ function triggerTimeStop() {
   if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
   persist.timestopCount--;
   timeStopActive = true;
-  postTimeStopSlowTimer = 0; 
   
-  // FIXED: Core freeze locked strictly at 2 seconds
-  timeStopTimeRemaining = 2000;
+  let duration = 4000; 
+  if (persist.timestopLevel > 0) {
+    duration = UPGRADE_TIERS[persist.timestopLevel - 1].duration;
+  }
+  timeStopTimeRemaining = duration;
   
+  drops.forEach(d => {
+    d.slowTimeRemaining = 3000;
+  });
   playTimeStopAudio();
   usePowerupBtn.classList.add('active-pulse');
   updateHUD();
@@ -521,35 +515,27 @@ function spawnDrop() {
     y: -30,
     r: 10 + Math.random() * 5,
     speed: dropSpeed + Math.random() * 1.5,
-    wobble: Math.random() * Math.PI * 2
+    wobble: Math.random() * Math.PI * 2,
+    slowTimeRemaining: timeStopActive ? 3000 : 0,
+    // Add an intrinsic speed offset variation to un-clump stacks when exiting Time Stop
+    scatterOffset: (Math.random() - 0.5) * 1.2 
   });
 }
 
 function drawDrop(d) {
   ctx.save();
   const {x, y, r} = d;
-  
   ctx.beginPath();
   ctx.moveTo(x, y - r * 1.6);
   ctx.bezierCurveTo(x + r * 0.6, y - r * 0.6, x + r, y + r * 0.4, x, y + r);
   ctx.bezierCurveTo(x - r, y + r * 0.4, x - r * 0.6, y - r * 0.6, x, y - r * 1.6);
   ctx.closePath();
-  
   const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
-  if (timeStopActive) {
-    // High performance vector alternative colors to isolate freeze state without context lag
-    g.addColorStop(0, '#93c5fd');
-    g.addColorStop(1, '#1e3a8a');
-  } else {
-    g.addColorStop(0, 'rgba(180,230,255,0.95)');
-    g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
-    g.addColorStop(1, 'rgba(2,136,209,0.88)');
-  }
-  
+  g.addColorStop(0, 'rgba(180,230,255,0.95)');
+  g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
+  g.addColorStop(1, 'rgba(2,136,209,0.88)');
   ctx.fillStyle = g;
   ctx.fill();
-  
-  // Dynamic glow highlights
   ctx.beginPath();
   ctx.ellipse(x - r * 0.28, y - r * 0.5, r * 0.22, r * 0.36, -0.4, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -558,53 +544,57 @@ function drawDrop(d) {
 }
 
 /* ════════════════════════════════════════════
-   BUCKET RENDER HOOKS
+   BUCKET & SCALED SHADOW
    ════════════════════════════════════════════ */
 function drawBucket() {
   const {x: bx, y: by, w: bw, h: bh} = bucket;
   ctx.save();
 
-  // Subtle base shadow layout
+  // Dynamic Scale Correction: Match the floor shadow dimensions directly to the bucket width variable
   ctx.beginPath();
-  ctx.ellipse(bx + bw / 2, by + bh + 4, bw * 0.46, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(bx + bw / 2, by + bh + 5, bw * 0.48, bh * 0.08, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fill();
 
   if (textures.bucket) {
     ctx.drawImage(textures.bucket, bx, by, bw, bh);
   } else {
-    // High fidelity fallback drawing nodes
     ctx.beginPath();
-    ctx.moveTo(bx - 4, by);
-    ctx.lineTo(bx + bw + 4, by);
-    ctx.lineTo(bx + bw - 6, by + bh);
-    ctx.lineTo(bx + 6, by + bh);
+    ctx.moveTo(bx - 7, by);
+    ctx.lineTo(bx + bw + 7, by);
+    ctx.lineTo(bx + bw + 3, by + bh); ctx.lineTo(bx - 3, by + bh);
     ctx.closePath();
     const bg = ctx.createLinearGradient(bx, by, bx + bw, by);
-    bg.addColorStop(0, '#3b82f6'); 
-    bg.addColorStop(0.5, '#60a5fa'); 
-    bg.addColorStop(1, '#1d4ed8');
+    bg.addColorStop(0, '#a855f7'); bg.addColorStop(0.5, '#c084fc'); bg.addColorStop(1, '#7e22ce');
     ctx.fillStyle = bg; ctx.fill();
   }
+
   ctx.restore();
 }
 
 /* ════════════════════════════════════════════
-   PARTICLES (FIXED: Fluid Splash Elements)
+   PARTICLES (Splashes)
    ════════════════════════════════════════════ */
 function spawnCatchParticles(x, y) {
-  // FIXED: Spawns dense, lightweight water blue drops firing upward in water fountain paths
-  for (let i = 0; i < 16; i++) {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
-    const velocity = 2.0 + Math.random() * 4.5;
+  // Pure visual ripples inside the bucket — low velocity upwards
+  for (let i = 0; i < 8; i++) {
+    const a = -Math.PI/2 + (Math.random() - 0.5) * 0.5;
+    const s = 0.5 + Math.random() * 1.5;
     particles.push({
-      x, y, 
-      vx: Math.cos(angle) * velocity, 
-      vy: Math.sin(angle) * velocity - 1.5,
-      life: 1.0, 
-      decay: 0.03 + Math.random() * 0.04, 
-      r: 1.5 + Math.random() * 3.0, 
-      water: true
+      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      life: 0.8, decay: 0.04, r: 1.5 + Math.random() * 2, water: true
+    });
+  }
+}
+
+function spawnEdgeExplosionParticles(x, y) {
+  // Aggressive explosion splash on edge/corner impact
+  for (let i = 0; i < 18; i++) {
+    const a = (Math.random() * -Math.PI); // full semi-circle outward explosion
+    const s = 2.5 + Math.random() * 4.5;
+    particles.push({
+      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1,
+      life: 1.0, decay: 0.03 + Math.random() * 0.02, r: 2 + Math.random() * 3, water: true
     });
   }
 }
@@ -619,31 +609,28 @@ function spawnMissParticles(x) {
 
 function drawParticles() {
   for (const p of particles) {
-    ctx.save(); 
-    ctx.globalAlpha = Math.max(0, p.life);
-    // FIXED: Beautiful water blue drops on catches with no gray stone fragments remaining
-    ctx.fillStyle = p.water ? `rgba(56, 189, 248, ${p.life})` : `rgba(239,68,68,${p.life})`;
-    ctx.beginPath(); 
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); 
-    ctx.fill(); 
-    ctx.restore();
+    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.water ? `rgba(96,165,250,${p.life})` : `rgba(239,68,68,${p.life})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
 }
 
 /* ════════════════════════════════════════════
-   BACKGROUND & STREAKS
+   BACKGROUND & COMBO
    ════════════════════════════════════════════ */
 function drawBg() {
   ctx.fillStyle = '#0a1628';
   ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(100,180,255,0.04)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(100,180,255,0.05)'; ctx.lineWidth = 1;
   for (let y = 80; y < H; y += 64) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
+    ctx.stroke();
   }
 }
 
 const comboPopup = document.getElementById('combo-popup');
 let comboTimer = null;
+
 function showCombo(n) {
   if (n < 3) return;
   const m = n >= 20 ? 'UNSTOPPABLE 🔥🔥' : n >= 10 ? '10x Streak! 🔥' : n >= 5 ? '5x Combo!' : '3x Combo!';
@@ -654,26 +641,16 @@ function showCombo(n) {
 }
 
 /* ════════════════════════════════════════════
-   GAME LOOP (FIXED: Zero Lag Performance)
+   GAME LOOP & INTERSECTION MECHANICS
    ════════════════════════════════════════════ */
 function update(dt) {
   if (!gameRunning) return;
-
   if (timeStopActive) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
       usePowerupBtn.classList.remove('active-pulse');
-      
-      // Dynamic upgrade duration assignment
-      let baseSlowWindow = 5000;
-      if (persist.timestopLevel > 0) {
-        baseSlowWindow = UPGRADE_TIERS[persist.timestopLevel - 1].slowDuration;
-      }
-      postTimeStopSlowTimer = baseSlowWindow; 
     }
-  } else if (postTimeStopSlowTimer > 0) {
-    postTimeStopSlowTimer -= dt;
   }
 
   dropTimer += dt; speedTick += dt;
@@ -687,60 +664,92 @@ function update(dt) {
     if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
   }
 
-  // Linear interpolation is completely decoupled from global canvas filters to maintain 60 FPS fluidity
   bucket.x += (bucket.targetX - bucket.x) * 0.45;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
-    
-    let currentDropSpeed = d.speed;
-    if (timeStopActive) {
-      currentDropSpeed = 0.0; // Perfect full mid-air complete freeze position lock
-    } else if (postTimeStopSlowTimer > 0) {
-      currentDropSpeed = d.speed * 0.20; // 5s+ Heavy sluggish fluid drag effect 
+    if (d.slowTimeRemaining > 0) {
+      d.slowTimeRemaining -= dt;
+    }
+
+    // Mathematical Anti-Clumping Execution: Add individual scatter offsets when time-stop ceases
+    let variableVelocity = d.speed;
+    if (timeStopActive || d.slowTimeRemaining > 0) {
+      variableVelocity = d.speed * 0.15;
+    } else {
+      // Applies slight independent separation variance dynamically over time
+      variableVelocity += d.scatterOffset;
     }
     
-    d.y += currentDropSpeed * (dt / 16);
-    
-    // FIXED LIQUID DEPTH PHYSICS: Catch boundaries moved deep inside the rim (bT + 12) to match fluid bucket mechanics
-    const bL = bucket.x - 4, bR = bucket.x + bucket.w + 4, bT = bucket.y;
-    if (d.y >= bT + 12 && d.y - d.r < bT + 36 && d.x >= bL && d.x <= bR) {
-      score++; sessionPesos += 5; combo++;
-      waterLevel = Math.min(waterLevel + 0.06, 0.7);
-      updateHUD(); showCombo(combo);
-      spawnCatchParticles(d.x, bT + 16);
-      drops.splice(i, 1); continue;
+    d.y += variableVelocity * (dt / 16);
+
+    const bL = bucket.x;
+    const bR = bucket.x + bucket.w;
+    const bT = bucket.y; 
+
+    // Precise Geometric Hitbox Parsing
+    if (d.y + d.r >= bT && d.y - d.r <= bT + bucket.h) {
+      if (d.x >= bL && d.x <= bR) {
+        
+        // Define exact edge zones (outer 10% margins of the rim)
+        const edgeThreshold = bucket.w * 0.10;
+        const isNearLeftEdge = (d.x >= bL && d.x <= bL + edgeThreshold);
+        const isNearRightEdge = (d.x >= bR - edgeThreshold && d.x <= bR);
+
+        if ((isNearLeftEdge || isNearRightEdge) && d.y <= bT + 18) {
+          // Edge/Corner collision: Break up droplet into an intense splash explosion
+          spawnEdgeExplosionParticles(d.x, bT);
+          score++;
+          sessionPesos += 5; combo++;
+          updateHUD(); showCombo(combo);
+          drops.splice(i, 1);
+          continue;
+        } 
+        
+        // Inside Bucket Rim catch zone
+        if (d.y >= bT + 12) {
+          // Drop visually sinks completely inside the container frame before vanishing safely
+          spawnCatchParticles(d.x, d.y);
+          score++;
+          sessionPesos += 5; combo++;
+          waterLevel = Math.min(waterLevel + 0.06, 0.7);
+          updateHUD(); showCombo(combo);
+          drops.splice(i, 1);
+          continue;
+        }
+      }
     }
-    
+
+    // Ground Miss Check
     if (d.y > H + 20) {
       spawnMissParticles(d.x);
-      lives--; combo = 0; updateHUD();
+      lives--;
+      combo = 0; updateHUD();
       drops.splice(i, 1);
       if (lives <= 0) endGame();
     }
   }
-  
   waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
   for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
 function draw() {
-  // Completely eliminated context filter processing logic to maximize CPU cycles
+  ctx.save();
+  if (timeStopActive) {
+    ctx.filter = "grayscale(0.5) contrast(1.25) brightness(0.95)";
+  }
   drawBg();
   
+  // Render Ordering Overhaul: Draw droplets AFTER background, but let catch-zone processing mask them natively
   for (const d of drops) drawDrop(d);
-  
-  // Injects vector frozen overlay tint directly onto canvas rendering layer without processing lag
-  if (timeStopActive) {
-    ctx.fillStyle = "rgba(147, 197, 253, 0.12)";
-    ctx.fillRect(0, 0, W, H);
-  }
-  
   drawBucket();
   drawParticles();
+  
+  ctx.restore();
 }
 
 function loop(ts) {
@@ -757,7 +766,6 @@ const screens = {
   gameover: document.getElementById('screen-gameover'),
   shop: document.getElementById('screen-shop'),
 };
-
 function showScreen(name) {
   Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
   if (name === null) {
@@ -776,13 +784,11 @@ function startGame() {
   drops = []; particles = [];
   score = 0; sessionPesos = 0; combo = 0;
   dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
-  postTimeStopSlowTimer = 0;
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
   lives = MAX_LIVES;
   timeStopActive = false;
   timeStopTimeRemaining = 0;
   usePowerupBtn.classList.remove('active-pulse');
-  
   bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
   updateHUD(); 
   showScreen(null);
@@ -802,29 +808,30 @@ async function endGame() {
 }
 
 /* ════════════════════════════════════════════
-   SHOP ARCHITECTURE (FIXED: Rebranded Text)
+   SHOP ARCHITECTURE
    ════════════════════════════════════════════ */
 function renderShop() {
   document.getElementById('shop-pesos-count').textContent = persist.totalPesos;
   const container = document.getElementById('shop-items');
   container.innerHTML = '';
 
-  // Item 1: Bucket Upgrade Module
   const bucketOwned = persist.purchases.includes('bucket_upgrade');
   const canAffordBucket = persist.totalPesos >= 15;
   const elBucket = document.createElement('div');
   elBucket.className = 'shop-item' + (bucketOwned ? ' owned' : '');
   elBucket.innerHTML = `
-    <div class="shop-item-icon"><img src="bucket.png" alt="bucket" onerror="this.style.display='none'"></div>
+    <div class="shop-item-icon">
+      <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
+    </div>
     <div class="shop-item-info">
       ${bucketOwned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
-      <div class="shop-item-name">Reinforced Rim</div>
-      <div class="shop-item-desc">Elongates visual armor capacity — provides 5 lives instead of 3.</div>
+      <div class="shop-item-name">Upgraded Bucket</div>
+      <div class="shop-item-desc">A sturdier bucket — gives you 5 lives instead of 3.</div>
     </div>
     <div class="shop-item-action">
       ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
-        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt="" onerror="this.style.display='none'"> 15</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt="" onerror="this.style.display='none'"> 15</button>`
+        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt=""> 15</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> 15</button>`
       }
     </div>
   `;
@@ -841,17 +848,18 @@ function renderShop() {
     });
   }
 
-  // Item 2: Consumable Time Stop Powerup Module
   const canAffordTS = persist.totalPesos >= 160;
   const atMaxCount = persist.timestopCount >= 5;
   const elTimeStop = document.createElement('div');
   elTimeStop.className = 'shop-item';
   elTimeStop.innerHTML = `
-    <div class="shop-item-icon"><img src="hourglass.png" alt="⏳" onerror="this.style.display='none'"></div>
+    <div class="shop-item-icon">
+      <img src="hourglass.png" alt="⏳" onerror="this.style.display='none'">
+    </div>
     <div class="shop-item-info">
       <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">Stock: ${persist.timestopCount}/5</span>
-      <div class="shop-item-name">Chronos Freeze</div>
-      <div class="shop-item-desc">Completely locks all liquids solid in mid-air for 2 seconds. Followed by a slow motion drift.</div>
+      <div class="shop-item-name">Time Stop Power-up</div>
+      <div class="shop-item-desc">Freezes all active falling liquid droplets in space temporarily. Accessible during playspace runs.</div>
     </div>
     <div class="shop-item-action">
       ${atMaxCount ? `<div class="btn-owned" style="color:#ff9800; border-color:rgba(255,152,0,0.3)">MAX</div>` : canAffordTS ?
@@ -873,7 +881,6 @@ function renderShop() {
     });
   }
 
-  // Item 3: Linear Progression Upgrade Tiers (FIXED: Rebranded Layout Text)
   const currentTierIndex = persist.timestopLevel;
   const maxTierReached = currentTierIndex >= UPGRADE_TIERS.length;
   const nextUpgrade = !maxTierReached ? UPGRADE_TIERS[currentTierIndex] : null;
@@ -883,11 +890,11 @@ function renderShop() {
   elTSUpgrade.className = 'shop-item' + (maxTierReached ? ' owned' : '');
   elTSUpgrade.innerHTML = `
     <div class="shop-item-icon" style="background:rgba(255,215,0,0.05); border-color:rgba(255,215,0,0.2)">
-      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(165deg)" onerror="this.style.display='none'">
+      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(45deg)" onerror="this.style.display='none'">
     </div>
     <div class="shop-item-info">
       <span class="upgrade-badge">LVL ${currentTierIndex}</span>
-      <div class="shop-item-name">Hydra Cooldown</div>
+      <div class="shop-item-name">Chronos Upgrade</div>
       <div class="shop-item-desc">${maxTierReached ? 'Maximum capability unlock reached!' : nextUpgrade.desc}</div>
     </div>
     <div class="shop-item-action">
@@ -934,13 +941,15 @@ canvas.addEventListener('touchmove', e => {
   const tx = e.touches[0].clientX, dx = tx - lastTouchX; lastTouchX = tx;
   bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * 1.65));
 }, {passive: false});
+
 canvas.addEventListener('mousemove', e => {
   if (!gameRunning) return;
   bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.clientX - bucket.w / 2));
 });
+
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const s = W * 0.12;
+  const s = W * 0.12; 
   if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
   if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
   if (e.key === ' ' || e.key === 'Spacebar') {
@@ -954,7 +963,6 @@ window.addEventListener('keydown', e => {
    ════════════════════════════════════════════ */
 (async () => {
   await cgInit();
-  await preloadAudio();
   const saved = await loadProgress();
   if (saved) {
     persist.totalPesos = saved.totalPesos || 0;
