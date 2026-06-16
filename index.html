@@ -460,6 +460,7 @@ let gameRunning = false, animFrame, lastTime = 0;
 
 // Time Stop System State
 let timeStopActive = false;
+let postTimeStopSlowTimer = 0;
 let timeStopTimeRemaining = 0;
 
 /* ════════════════════════════════════════════
@@ -677,7 +678,7 @@ function spawnMissParticles(x) {
 function drawParticles() {
   for (const p of particles) {
     ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = p.water ? `rgba(79,195,247,${p.life})` : `rgba(255,80,80,${p.life})`;
+    ctx.fillStyle = "rgba(79, 195, 247, " + p.life + ")";
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
 }
@@ -715,8 +716,11 @@ function update(dt) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
+      postTimeStopSlowTimer = 5000; // Trigger the 5-second lingering slow right here!
       usePowerupBtn.classList.remove('active-pulse');
     }
+  } else if (postTimeStopSlowTimer > 0) {
+    postTimeStopSlowTimer -= dt;
   }
 
   // Only advance drop creation tick and parameters if time is normal
@@ -770,72 +774,15 @@ function draw() {
   
   // Custom Gray-Contrast Shader Implementation for rendering frame profiles
   if (timeStopActive) {
-    ctx.filter = "grayscale(0.6) contrast(1.2) brightness(0.9)";
-  }
-  
-  drawBg();
-  for (const d of drops) drawDrop(d);
-  drawBucket();
-  drawParticles();
-  
-  ctx.restore();
-}
-
-function loop(ts) {
-  const dt = Math.min(ts - lastTime, 50); lastTime = ts;
-  update(dt); draw();
-  if (gameRunning) animFrame = requestAnimationFrame(loop);
-}
-
-/* ════════════════════════════════════════════
-   SCREENS
-   ════════════════════════════════════════════ */
-const screens = {
-  menu: document.getElementById('screen-menu'),
-  gameover: document.getElementById('screen-gameover'),
-  shop: document.getElementById('screen-shop'),
-};
-
-function showScreen(name) {
-  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
-  
-  if (name === null) {
-    document.getElementById('powerup-container').classList.remove('hidden');
-  } else {
-    document.getElementById('powerup-container').classList.add('hidden');
-  }
-}
-
-function showMainMenu() {
-  document.getElementById('menu-pesos-count').textContent = persist.totalPesos;
-  showScreen('menu');
-}
-
-function startGame() {
-  drops = []; particles = [];
-  score = 0; sessionPesos = 0; combo = 0;
-  dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
-  MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
-  lives = MAX_LIVES;
-  timeStopActive = false;
-  timeStopTimeRemaining = 0;
-  usePowerupBtn.classList.remove('active-pulse');
-  
-  bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
-  updateHUD(); 
-  showScreen(null);
-  gameRunning = true; lastTime = performance.now();
-  animFrame = requestAnimationFrame(loop);
-}
-
-async function endGame() {
-  gameRunning = false; cancelAnimationFrame(animFrame);
-  persist.totalPesos += sessionPesos;
-  await saveProgress(persist);
-  document.getElementById('end-score').textContent = score;
-  document.getElementById('end-pesos').textContent = sessionPesos;
-  document.getElementById('gameover-sub').innerHTML =
-    `You caught <strong style="color:#4fc3f7">${score} drops</strong> and earned <strong style="color:#ffd700">${sessionPesos} pesos</strong>!`;
+    timeStopTimeRemaining -= dt;
+    if (timeStopTimeRemaining <= 0) {
+      timeStopActive = false;
+      postTimeStopSlowTimer = 5000; // Trigger the 5-second lingering slow right here!
+      usePowerupBtn.classList.remove('active-pulse');
+    }
+  } else if (postTimeStopSlowTimer > 0) {
+    postTimeStopSlowTimer -= dt;
+  } drops</strong> and earned <strong style="color:#ffd700">${sessionPesos} pesos</strong>!`;
   showScreen('gameover');
 }
 
