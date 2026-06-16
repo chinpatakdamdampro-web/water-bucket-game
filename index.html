@@ -24,8 +24,9 @@ body {
   display:flex; justify-content:space-between; align-items:center;
   padding:14px 20px;
   padding-top:max(env(safe-area-inset-top),14px);
-  background:rgba(10,22,40,0.88); z-index:10;
+  background:rgba(10,22,40,0.92); z-index:10;
   border-bottom:1px solid rgba(100,180,255,0.15);
+  backdrop-filter: blur(8px);
 }
 .hud-item { display:flex; flex-direction:column; align-items:center; }
 .hud-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(160,210,255,0.6); font-weight:500; }
@@ -37,7 +38,7 @@ body {
 .hud-lives-count { font-size:18px; font-weight:800; color:#ff6b6b; }
 .hud-lives-label { font-size:10px; color:rgba(255,107,107,0.7); text-transform:uppercase; letter-spacing:1px; }
 
-/* ── LARGE MOBILE-FRIENDLY POWERUP CONTROLLER OVERLAY ── */
+/* ── POWERUP OVERLAY ── */
 #powerup-container {
   position: fixed;
   top: max(env(safe-area-inset-top), 86px);
@@ -61,19 +62,10 @@ body {
   position: relative;
   transition: transform 0.1s;
 }
-.powerup-btn:active {
-  transform: scale(0.9);
-}
-.powerup-btn.disabled {
-  border-color: rgba(160,210,255,0.2);
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.powerup-btn img {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-}
+.powerup-btn:active { transform: scale(0.9); }
+.powerup-btn.disabled { border-color: rgba(160,210,255,0.2); opacity: 0.4; cursor: not-allowed; }
+.powerup-btn img { width: 42px; height: 42px; object-fit: contain; }
+
 .powerup-count {
   position: absolute;
   bottom: -2px;
@@ -89,22 +81,22 @@ body {
 }
 .powerup-btn.active-pulse {
   border-color: #ffd700;
-  animation: pulseGlow 0.8s infinite alternate;
+  animation: pulseGlow 0.6s infinite alternate;
 }
 @keyframes pulseGlow {
   0% { box-shadow: 0 0 4px rgba(255,215,0,0.4); }
-  100% { box-shadow: 0 0 20px rgba(255,215,0,0.9); }
+  100% { box-shadow: 0 0 22px rgba(255,215,0,0.9); }
 }
 
 canvas { display:block; touch-action:none; }
 
-/* ── SCREENS (overlay) ── */
+/* ── SCREENS ── */
 .screen {
   position:fixed; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   z-index:20; padding:24px;
   padding-bottom:max(env(safe-area-inset-bottom),24px);
-  background:rgba(10,22,40,0.96);
+  background:rgba(8, 16, 28, 0.97);
 }
 .screen.hidden { display:none; }
 
@@ -120,8 +112,8 @@ canvas { display:block; touch-action:none; }
 }
 .menu-pesos-badge {
   display:flex; align-items:center; gap:8px;
-  background:rgba(255,215,0,0.1);
-  border:1px solid rgba(255,215,0,0.25);
+  background:rgba(255,215,0,0.08);
+  border:1px solid rgba(255,215,0,0.2);
   border-radius:12px; padding:10px 18px; margin-bottom:32px;
 }
 .menu-pesos-badge img { width:22px; height:22px; object-fit:contain; }
@@ -134,38 +126,20 @@ canvas { display:block; touch-action:none; }
   border:none; border-radius:50px; padding:16px 52px;
   font-size:18px; font-weight:700; color:#fff; cursor:pointer;
   -webkit-user-select:none; user-select:none; min-height:54px; width:220px;
-  text-align:center;
+  text-align:center; box-shadow: 0 4px 14px rgba(2, 136, 209, 0.4);
 }
 .btn-shop {
-  background:transparent;
-  border:none;
-  border-radius:50px; padding:13px 36px;
-  font-size:18px; font-weight:600; color:rgba(255,215,100,0.85);
-  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
-  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:transparent; border:none; padding:0; cursor:pointer; margin-top:16px; 
+  height:44px; width:220px; display:flex; align-items:center; justify-content:center;
   -webkit-user-select:none; user-select:none;
 }
-.btn-shop img { 
-  width: 220px;           
-  height: 60px;          
-  object-fit: contain;
-}
-.btn-shop.icon-only { 
-  font-size: 0;          
-  padding: 16px 52px;    
-  min-height: 56px;      
-  width: auto;           
-}
-
+.btn-shop img { width: 100%; height: 100%; object-fit: fill; border-radius: 4px; }
 .btn-secondary {
-  background:transparent;
-  border:1.5px solid rgba(100,180,255,0.3);
-  border-radius:50px; padding:13px 36px;
-  font-size:15px; font-weight:600; color:rgba(160,210,255,0.75);
-  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
-  -webkit-user-select:none; user-select:none;
+  background:transparent; border:1.5px solid rgba(100,180,255,0.3);
+  border-radius:50px; padding:13px 36px; font-size:15px; font-weight:600; color:rgba(160,210,255,0.75);
+  cursor:pointer; margin-top:12px; min-height:48px; width:220px; -webkit-user-select:none; user-select:none;
 }
-.drops-tip { margin-top:20px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; }
+.drops-tip { margin-top:24px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; line-height:1.4; }
 
 /* ── CREDIT ── */
 .credit { margin-top:28px; display:flex; align-items:center; gap:4px; }
@@ -173,10 +147,9 @@ canvas { display:block; touch-action:none; }
 .letter-o { font-size:20px; font-weight:800; color:#4fc3f7; font-style:italic; text-shadow:0 0 10px rgba(79,195,247,0.5); }
 .credit-amp { font-size:13px; color:rgba(160,210,255,0.35); margin:0 2px; }
 .letter-s {
-  font-size:22px; font-weight:900;
-  background:linear-gradient(135deg,#ffd700,#ff9800);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  background-clip:text; font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
+  font-size:22px; font-weight:900; background:linear-gradient(135deg,#ffd700,#ff9800);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
 }
 
 /* ── GAME OVER SCREEN ── */
@@ -209,11 +182,10 @@ canvas { display:block; touch-action:none; }
 .shop-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.18; border-radius:20px; }
 .shop-items { position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; }
 
-.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
+.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.85); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
 .shop-item.owned { border-color:rgba(79,195,247,0.4); }
 .shop-item-icon {
-  width:54px; height:54px; border-radius:10px;
-  background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2);
+  width:54px; height:54px; border-radius:10px; background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2);
   display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
 }
 .shop-item-icon img { width:46px; height:46px; object-fit:contain; }
@@ -223,8 +195,7 @@ canvas { display:block; touch-action:none; }
 .shop-item-action { flex-shrink:0; }
 .btn-buy {
   display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#ffd700,#f59e00);
-  border:none; border-radius:20px; padding:8px 14px;
-  font-size:13px; font-weight:700; color:#3a2000; cursor:pointer;
+  border:none; border-radius:20px; padding:8px 14px; font-size:13px; font-weight:700; color:#3a2000; cursor:pointer;
   -webkit-user-select:none; user-select:none; white-space:nowrap;
 }
 .btn-buy img { width:14px; height:14px; object-fit:contain; }
@@ -235,10 +206,12 @@ canvas { display:block; touch-action:none; }
 /* ── COMBO ── */
 #combo-popup {
   position:fixed; top:90px; left:50%; transform:translateX(-50%);
-  font-size:22px; font-weight:800; color:#ffd700;
-  z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap;
+  font-size:22px; font-weight:800; color:#ffd700; z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap;
 }
 </style>
+
+<script src="config.js"></script>
+
 </head>
 <body>
 
@@ -281,10 +254,10 @@ canvas { display:block; touch-action:none; }
     <span class="pesos-label">Total Pesos</span>
   </div>
   <button class="btn-primary" id="btn-play">Play</button>
-  <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
+  <button class="btn-shop" id="btn-open-shop" title="Open Shop">
     <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
-  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar uses Time Stop.</div>
+  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar activates Time Freeze.</div>
   <div class="credit">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
@@ -377,66 +350,79 @@ async function loadProgress() {
 }
 
 /* ════════════════════════════════════════════
-   AUDIO SYSTEM
+   AUDIO SYSTEM (Zero-Delay Processing)
    ════════════════════════════════════════════ */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playFallbackTimeStopSound() {
+let audioBuffer = null;
+
+async function preloadAudio() {
   try {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-  } catch(e){}
+    const response = await fetch('timestop.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  } catch (e) {
+    console.log("Audio fallback mode operational.");
+  }
 }
 
 function playTimeStopAudio() {
-  const audio = new Audio('timestop.mp3');
-  audio.play().catch(() => {
-    playFallbackTimeStopSound();
-  });
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  if (audioBuffer) {
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
+    return;
+  }
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(146.83, audioCtx.currentTime + 0.35);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } catch(e){}
 }
 
 /* ════════════════════════════════════════════
-   GAME STATE & CONFIG
+   GAME STATE & VOLATILE TRACKERS
    ════════════════════════════════════════════ */
-const UPGRADE_TIERS = [
-  { level: 1, cost: 100, duration: 5000, desc: "Upgrades time stop from 4s to 5s" },
-  { level: 2, cost: 250, duration: 6000, desc: "Upgrades time stop from 5s to 6s" },
-  { level: 3, cost: 500, duration: 7000, desc: "Upgrades time stop from 6s to 7s" },
-  { level: 4, cost: 1000, duration: 8000, desc: "Upgrades time stop from 7s to 8s" }
-];
 let persist = { 
   totalPesos: 0, 
   purchases: [],
   timestopCount: 0,
   timestopLevel: 0
 };
+
 let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
 let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
 
-// Time Stop States
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
+let postTimeStopSlowTimer = 0;
 
 /* ════════════════════════════════════════════
-   CANVAS & TEXTURES
+   CANVAS & OBJECT DEFS (DYNAMIC FROM CONFIG)
    ════════════════════════════════════════════ */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
 
-// Dimensions & Render adjustments
-const BUCKET_H = 82;
-const BUCKET_W_RATIO = 0.24;
-let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
+// Read Initial Bucket structural elements from external configuration profiles
+let bucket = { 
+  x: 0, 
+  y: 0, 
+  w: 0, 
+  h: GAME_CONFIG.bucket.height, 
+  targetX: 0 
+};
 let drops = [], particles = [];
 
 const textures = {};
@@ -450,20 +436,23 @@ function loadImg(key, src) {
 }
 
 /* ════════════════════════════════════════════
-   RESIZE & HUD
+   RESIZE & HUD INTERACTION RENDERERS
    ════════════════════════════════════════════ */
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  bucket.w = W * BUCKET_W_RATIO;
-  bucket.y = H - 110;
+  
+  // Apply external bucket scalar configuration properties
+  bucket.w = W * GAME_CONFIG.bucket.widthRatio;
+  bucket.h = GAME_CONFIG.bucket.height;
+  bucket.y = H - GAME_CONFIG.bucket.bottomOffset;
+  
   if (!gameRunning) {
     bucket.x = W / 2 - bucket.w / 2;
     bucket.targetX = bucket.x;
   }
 }
 window.addEventListener('resize', resize);
-resize();
 
 const hudScore = document.getElementById('hud-score');
 const hudPesos = document.getElementById('hud-pesos');
@@ -484,22 +473,16 @@ function updateHUD() {
 }
 
 /* ════════════════════════════════════════════
-   POWERUP LOGIC CHANNELS
+   POWERUP CHANNELS
    ════════════════════════════════════════════ */
 function triggerTimeStop() {
   if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
   persist.timestopCount--;
   timeStopActive = true;
+  postTimeStopSlowTimer = 0; 
   
-  let duration = 4000; 
-  if (persist.timestopLevel > 0) {
-    duration = UPGRADE_TIERS[persist.timestopLevel - 1].duration;
-  }
-  timeStopTimeRemaining = duration;
+  timeStopTimeRemaining = GAME_CONFIG.powerups.timeStopFreezeDuration;
   
-  drops.forEach(d => {
-    d.slowTimeRemaining = 3000;
-  });
   playTimeStopAudio();
   usePowerupBtn.classList.add('active-pulse');
   updateHUD();
@@ -507,35 +490,46 @@ function triggerTimeStop() {
 }
 
 /* ════════════════════════════════════════════
-   DROPS
+   DYNAMIC DROPS INJECTION
    ════════════════════════════════════════════ */
 function spawnDrop() {
+  const rMin = GAME_CONFIG.drops.radiusMin;
+  const rMax = GAME_CONFIG.drops.radiusMax;
+  const scatter = GAME_CONFIG.drops.scatterVariance;
+  
   drops.push({
     x: Math.random() * (W - 32) + 16,
     y: -30,
-    r: 10 + Math.random() * 5,
+    r: rMin + Math.random() * (rMax - rMin),
     speed: dropSpeed + Math.random() * 1.5,
     wobble: Math.random() * Math.PI * 2,
-    slowTimeRemaining: timeStopActive ? 3000 : 0,
-    // Add an intrinsic speed offset variation to un-clump stacks when exiting Time Stop
-    scatterOffset: (Math.random() - 0.5) * 1.2 
+    scatterOffset: (Math.random() - 0.5) * scatter
   });
 }
 
 function drawDrop(d) {
   ctx.save();
   const {x, y, r} = d;
+  
   ctx.beginPath();
   ctx.moveTo(x, y - r * 1.6);
   ctx.bezierCurveTo(x + r * 0.6, y - r * 0.6, x + r, y + r * 0.4, x, y + r);
   ctx.bezierCurveTo(x - r, y + r * 0.4, x - r * 0.6, y - r * 0.6, x, y - r * 1.6);
   ctx.closePath();
+  
   const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
-  g.addColorStop(0, 'rgba(180,230,255,0.95)');
-  g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
-  g.addColorStop(1, 'rgba(2,136,209,0.88)');
+  if (timeStopActive) {
+    g.addColorStop(0, '#93c5fd');
+    g.addColorStop(1, '#1e3a8a');
+  } else {
+    g.addColorStop(0, 'rgba(180,230,255,0.95)');
+    g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
+    g.addColorStop(1, 'rgba(2,136,209,0.88)');
+  }
+  
   ctx.fillStyle = g;
   ctx.fill();
+  
   ctx.beginPath();
   ctx.ellipse(x - r * 0.28, y - r * 0.5, r * 0.22, r * 0.36, -0.4, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -544,15 +538,15 @@ function drawDrop(d) {
 }
 
 /* ════════════════════════════════════════════
-   BUCKET & SCALED SHADOW
+   BUCKET & SCALED FLOOR SHADOW RENDERERS
    ════════════════════════════════════════════ */
 function drawBucket() {
   const {x: bx, y: by, w: bw, h: bh} = bucket;
   ctx.save();
 
-  // Dynamic Scale Correction: Match the floor shadow dimensions directly to the bucket width variable
+  // DYNAMIC: Base floor shadow properties scaling proportionally alongside config inputs
   ctx.beginPath();
-  ctx.ellipse(bx + bw / 2, by + bh + 5, bw * 0.48, bh * 0.08, 0, 0, Math.PI * 2);
+  ctx.ellipse(bx + bw / 2, by + bh + 4, bw * 0.46, bh * 0.062, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fill();
 
@@ -560,77 +554,105 @@ function drawBucket() {
     ctx.drawImage(textures.bucket, bx, by, bw, bh);
   } else {
     ctx.beginPath();
-    ctx.moveTo(bx - 7, by);
-    ctx.lineTo(bx + bw + 7, by);
-    ctx.lineTo(bx + bw + 3, by + bh); ctx.lineTo(bx - 3, by + bh);
+    ctx.moveTo(bx - 4, by);
+    ctx.lineTo(bx + bw + 4, by);
+    ctx.lineTo(bx + bw - 6, by + bh);
+    ctx.lineTo(bx + 6, by + bh);
     ctx.closePath();
     const bg = ctx.createLinearGradient(bx, by, bx + bw, by);
-    bg.addColorStop(0, '#a855f7'); bg.addColorStop(0.5, '#c084fc'); bg.addColorStop(1, '#7e22ce');
+    bg.addColorStop(0, '#3b82f6'); 
+    bg.addColorStop(0.5, '#60a5fa'); 
+    bg.addColorStop(1, '#1d4ed8');
     ctx.fillStyle = bg; ctx.fill();
   }
-
   ctx.restore();
 }
 
 /* ════════════════════════════════════════════
-   PARTICLES (Splashes)
+   DYNAMIC FLUID PARTICLE INJECTORS
    ════════════════════════════════════════════ */
 function spawnCatchParticles(x, y) {
-  // Pure visual ripples inside the bucket — low velocity upwards
-  for (let i = 0; i < 8; i++) {
-    const a = -Math.PI/2 + (Math.random() - 0.5) * 0.5;
-    const s = 0.5 + Math.random() * 1.5;
+  const qty = GAME_CONFIG.particles.catchCount;
+  for (let i = 0; i < qty; i++) {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+    const velocity = 0.5 + Math.random() * 1.5;
     particles.push({
-      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-      life: 0.8, decay: 0.04, r: 1.5 + Math.random() * 2, water: true
+      x, y, 
+      vx: Math.cos(angle) * velocity, 
+      vy: Math.sin(angle) * velocity,
+      life: 0.8, 
+      decay: 0.04, 
+      r: 1.5 + Math.random() * 2.0, 
+      type: 'catch'
     });
   }
 }
 
 function spawnEdgeExplosionParticles(x, y) {
-  // Aggressive explosion splash on edge/corner impact
-  for (let i = 0; i < 18; i++) {
-    const a = (Math.random() * -Math.PI); // full semi-circle outward explosion
-    const s = 2.5 + Math.random() * 4.5;
+  const qty = GAME_CONFIG.particles.edgeExplosionCount;
+  for (let i = 0; i < qty; i++) {
+    const angle = (Math.random() * -Math.PI); 
+    const velocity = 2.5 + Math.random() * 4.5;
     particles.push({
-      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1,
-      life: 1.0, decay: 0.03 + Math.random() * 0.02, r: 2 + Math.random() * 3, water: true
+      x, y, 
+      vx: Math.cos(angle) * velocity, 
+      vy: Math.sin(angle) * velocity - 1,
+      life: 1.0, 
+      decay: 0.03 + Math.random() * 0.02, 
+      r: 2 + Math.random() * 3, 
+      type: 'edge'
     });
   }
 }
 
 function spawnMissParticles(x) {
-  for (let i = 0; i < 8; i++)
+  const qty = GAME_CONFIG.particles.missCount;
+  for (let i = 0; i < qty; i++) {
     particles.push({
-      x, y: H - 20, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 3 + 1),
-      life: 1, decay: 0.05 + Math.random() * 0.04, r: 2 + Math.random() * 3, water: false
+      x, y: H - 20, 
+      vx: (Math.random() - 0.5) * 4, 
+      vy: -(Math.random() * 3 + 1),
+      life: 1, 
+      decay: 0.05 + Math.random() * 0.04, 
+      r: 2 + Math.random() * 3, 
+      type: 'miss'
     });
+  }
 }
 
 function drawParticles() {
   for (const p of particles) {
-    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = p.water ? `rgba(96,165,250,${p.life})` : `rgba(239,68,68,${p.life})`;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save(); 
+    ctx.globalAlpha = Math.max(0, p.life);
+    
+    // Assign structural color properties from external config file declarations
+    if (p.type === 'catch' || p.type === 'edge') {
+      ctx.fillStyle = GAME_CONFIG.particles.catchColor + p.life + ")";
+    } else {
+      ctx.fillStyle = GAME_CONFIG.particles.missColor + p.life + ")";
+    }
+    
+    ctx.beginPath(); 
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); 
+    ctx.fill(); 
+    ctx.restore();
   }
 }
 
 /* ════════════════════════════════════════════
-   BACKGROUND & COMBO
+   BACKGROUND SCENERY
    ════════════════════════════════════════════ */
 function drawBg() {
   ctx.fillStyle = '#0a1628';
   ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(100,180,255,0.05)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(100,180,255,0.04)'; ctx.lineWidth = 1;
   for (let y = 80; y < H; y += 64) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
   }
 }
 
 const comboPopup = document.getElementById('combo-popup');
 let comboTimer = null;
-
 function showCombo(n) {
   if (n < 3) return;
   const m = n >= 20 ? 'UNSTOPPABLE 🔥🔥' : n >= 10 ? '10x Streak! 🔥' : n >= 5 ? '5x Combo!' : '3x Combo!';
@@ -641,115 +663,113 @@ function showCombo(n) {
 }
 
 /* ════════════════════════════════════════════
-   GAME LOOP & INTERSECTION MECHANICS
+   ENGINE CORE LOOPS & COLLISION EQUATIONS
    ════════════════════════════════════════════ */
 function update(dt) {
   if (!gameRunning) return;
+
   if (timeStopActive) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
       usePowerupBtn.classList.remove('active-pulse');
+      
+      let baseSlowWindow = 5000;
+      if (persist.timestopLevel > 0) {
+        baseSlowWindow = GAME_CONFIG.upgradeTiers[persist.timestopLevel - 1].slowDuration;
+      }
+      postTimeStopSlowTimer = baseSlowWindow; 
     }
+  } else if (postTimeStopSlowTimer > 0) {
+    postTimeStopSlowTimer -= dt;
   }
 
   dropTimer += dt; speedTick += dt;
-  if (speedTick > 8000) {
+  if (speedTick > GAME_CONFIG.drops.difficultyTimeStep) {
     speedTick = 0;
-    dropSpeed = Math.min(dropSpeed + 0.45, 9.5);
-    dropInterval = Math.max(dropInterval - 90, 600);
+    dropSpeed = Math.min(dropSpeed + GAME_CONFIG.drops.difficultyDifficultyStep, GAME_CONFIG.drops.maxSpeed);
+    dropInterval = Math.max(dropInterval - GAME_CONFIG.drops.intervalDifficultyStep, GAME_CONFIG.drops.minInterval);
   }
   if (dropTimer > dropInterval) {
     dropTimer = 0; spawnDrop();
     if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
   }
 
-  bucket.x += (bucket.targetX - bucket.x) * 0.45;
+  // Handle slide translations via config movement constants
+  bucket.x += (bucket.targetX - bucket.x) * GAME_CONFIG.bucket.movementLerp;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
-    if (d.slowTimeRemaining > 0) {
-      d.slowTimeRemaining -= dt;
-    }
-
-    // Mathematical Anti-Clumping Execution: Add individual scatter offsets when time-stop ceases
-    let variableVelocity = d.speed;
-    if (timeStopActive || d.slowTimeRemaining > 0) {
-      variableVelocity = d.speed * 0.15;
+    
+    let currentDropSpeed = d.speed;
+    if (timeStopActive) {
+      currentDropSpeed = 0.0; 
+    } else if (postTimeStopSlowTimer > 0) {
+      currentDropSpeed = d.speed * 0.20; 
     } else {
-      // Applies slight independent separation variance dynamically over time
-      variableVelocity += d.scatterOffset;
+      currentDropSpeed += d.scatterOffset; // Apply layout scatter offset profiles to prevent stack clumping
     }
     
-    d.y += variableVelocity * (dt / 16);
-
+    d.y += currentDropSpeed * (dt / 16);
+    
+    // READ CRITICAL DETAILED HITBOX SEGMENTS FROM DYNAMIC PROPERTIES CONFIG
     const bL = bucket.x;
     const bR = bucket.x + bucket.w;
-    const bT = bucket.y; 
-
-    // Precise Geometric Hitbox Parsing
+    const bT = bucket.y;
+    
     if (d.y + d.r >= bT && d.y - d.r <= bT + bucket.h) {
       if (d.x >= bL && d.x <= bR) {
         
-        // Define exact edge zones (outer 10% margins of the rim)
-        const edgeThreshold = bucket.w * 0.10;
-        const isNearLeftEdge = (d.x >= bL && d.x <= bL + edgeThreshold);
-        const isNearRightEdge = (d.x >= bR - edgeThreshold && d.x <= bR);
-
-        if ((isNearLeftEdge || isNearRightEdge) && d.y <= bT + 18) {
-          // Edge/Corner collision: Break up droplet into an intense splash explosion
-          spawnEdgeExplosionParticles(d.x, bT);
-          score++;
-          sessionPesos += 5; combo++;
-          updateHUD(); showCombo(combo);
-          drops.splice(i, 1);
-          continue;
-        } 
+        // Compute precise pixel ranges for corner edge zones
+        const edgeWidthPixels = bucket.w * GAME_CONFIG.physics.edgeWidthPercent;
+        const isLeftCorner = (d.x >= bL && d.x <= bL + edgeWidthPixels);
+        const isRightCorner = (d.x >= bR - edgeWidthPixels && d.x <= bR);
         
-        // Inside Bucket Rim catch zone
-        if (d.y >= bT + 12) {
-          // Drop visually sinks completely inside the container frame before vanishing safely
+        if ((isLeftCorner || isRightCorner) && d.y <= bT + GAME_CONFIG.physics.edgeHeightThreshold) {
+          // Trigger corner break split explosion paths
+          spawnEdgeExplosionParticles(d.x, bT);
+          score++; sessionPesos += 5; combo++;
+          updateHUD(); showCombo(combo);
+          drops.splice(i, 1); continue;
+        }
+        
+        // Internal basin catch checks
+        const topLimit = GAME_CONFIG.physics.catchTopThreshold;
+        const bottomLimit = GAME_CONFIG.physics.catchBottomThreshold;
+        if (d.y >= bT + topLimit && d.y - d.r < bT + bottomLimit) {
           spawnCatchParticles(d.x, d.y);
-          score++;
-          sessionPesos += 5; combo++;
+          score++; sessionPesos += 5; combo++;
           waterLevel = Math.min(waterLevel + 0.06, 0.7);
           updateHUD(); showCombo(combo);
-          drops.splice(i, 1);
-          continue;
+          drops.splice(i, 1); continue;
         }
       }
     }
-
-    // Ground Miss Check
+    
     if (d.y > H + 20) {
       spawnMissParticles(d.x);
-      lives--;
-      combo = 0; updateHUD();
+      lives--; combo = 0; updateHUD();
       drops.splice(i, 1);
       if (lives <= 0) endGame();
     }
   }
+  
   waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
   for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
+    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
 function draw() {
-  ctx.save();
-  if (timeStopActive) {
-    ctx.filter = "grayscale(0.5) contrast(1.25) brightness(0.95)";
-  }
   drawBg();
-  
-  // Render Ordering Overhaul: Draw droplets AFTER background, but let catch-zone processing mask them natively
   for (const d of drops) drawDrop(d);
+  if (timeStopActive) {
+    ctx.fillStyle = "rgba(147, 197, 253, 0.12)";
+    ctx.fillRect(0, 0, W, H);
+  }
   drawBucket();
   drawParticles();
-  
-  ctx.restore();
 }
 
 function loop(ts) {
@@ -759,13 +779,14 @@ function loop(ts) {
 }
 
 /* ════════════════════════════════════════════
-   SCREENS
+   SCREENS NAVIGATION HANDLERS
    ════════════════════════════════════════════ */
 const screens = {
   menu: document.getElementById('screen-menu'),
   gameover: document.getElementById('screen-gameover'),
   shop: document.getElementById('screen-shop'),
 };
+
 function showScreen(name) {
   Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
   if (name === null) {
@@ -783,12 +804,17 @@ function showMainMenu() {
 function startGame() {
   drops = []; particles = [];
   score = 0; sessionPesos = 0; combo = 0;
-  dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
+  dropInterval = GAME_CONFIG.drops.baseInterval; 
+  dropTimer = 0; 
+  dropSpeed = GAME_CONFIG.drops.baseSpeed; 
+  speedTick = 0; waterLevel = 0;
+  postTimeStopSlowTimer = 0;
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
   lives = MAX_LIVES;
   timeStopActive = false;
   timeStopTimeRemaining = 0;
   usePowerupBtn.classList.remove('active-pulse');
+  
   bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
   updateHUD(); 
   showScreen(null);
@@ -808,30 +834,30 @@ async function endGame() {
 }
 
 /* ════════════════════════════════════════════
-   SHOP ARCHITECTURE
+   SHOP SUBSYSTEMS (DRIVEN BY CONFIG PROPERTIES)
    ════════════════════════════════════════════ */
 function renderShop() {
   document.getElementById('shop-pesos-count').textContent = persist.totalPesos;
   const container = document.getElementById('shop-items');
   container.innerHTML = '';
 
+  // Frame 1: Upgraded Bucket Item Node
   const bucketOwned = persist.purchases.includes('bucket_upgrade');
-  const canAffordBucket = persist.totalPesos >= 15;
+  const bCost = GAME_CONFIG.powerups.reinforcedRimPrice;
+  const canAffordBucket = persist.totalPesos >= bCost;
   const elBucket = document.createElement('div');
   elBucket.className = 'shop-item' + (bucketOwned ? ' owned' : '');
   elBucket.innerHTML = `
-    <div class="shop-item-icon">
-      <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
-    </div>
+    <div class="shop-item-icon"><img src="bucket.png" alt="bucket" onerror="this.style.display='none'"></div>
     <div class="shop-item-info">
       ${bucketOwned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
-      <div class="shop-item-name">Upgraded Bucket</div>
-      <div class="shop-item-desc">A sturdier bucket — gives you 5 lives instead of 3.</div>
+      <div class="shop-item-name">Hydra Bucket</div>
+      <div class="shop-item-desc">Reinforced visual perimeter armor - upgrades capacity limits to 5 maximum lives.</div>
     </div>
     <div class="shop-item-action">
       ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
-        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt=""> 15</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> 15</button>`
+        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt="" onerror="this.style.display='none'"> ${bCost}</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt="" onerror="this.style.display='none'"> ${bCost}</button>`
       }
     </div>
   `;
@@ -839,8 +865,8 @@ function renderShop() {
   
   if (document.getElementById('buy-bucket-btn')) {
     document.getElementById('buy-bucket-btn').addEventListener('click', async () => {
-      if (persist.totalPesos >= 15) {
-        persist.totalPesos -= 15;
+      if (persist.totalPesos >= bCost) {
+        persist.totalPesos -= bCost;
         persist.purchases.push('bucket_upgrade');
         await saveProgress(persist);
         renderShop();
@@ -848,23 +874,24 @@ function renderShop() {
     });
   }
 
-  const canAffordTS = persist.totalPesos >= 160;
-  const atMaxCount = persist.timestopCount >= 5;
+  // Frame 2: Consumable Power-up Stock Node
+  const tsCost = GAME_CONFIG.powerups.basePrice;
+  const maxStock = GAME_CONFIG.powerups.maxConsumableStock;
+  const canAffordTS = persist.totalPesos >= tsCost;
+  const atMaxCount = persist.timestopCount >= maxStock;
   const elTimeStop = document.createElement('div');
   elTimeStop.className = 'shop-item';
   elTimeStop.innerHTML = `
-    <div class="shop-item-icon">
-      <img src="hourglass.png" alt="⏳" onerror="this.style.display='none'">
-    </div>
+    <div class="shop-item-icon"><img src="hourglass.png" alt="⏳" onerror="this.style.display='none'"></div>
     <div class="shop-item-info">
-      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">Stock: ${persist.timestopCount}/5</span>
-      <div class="shop-item-name">Time Stop Power-up</div>
-      <div class="shop-item-desc">Freezes all active falling liquid droplets in space temporarily. Accessible during playspace runs.</div>
+      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">Stock: ${persist.timestopCount}/${maxStock}</span>
+      <div class="shop-item-name">Chronos Freeze</div>
+      <div class="shop-item-desc">Completely locks all active liquid nodes stationary in mid-air for 2 seconds.</div>
     </div>
     <div class="shop-item-action">
       ${atMaxCount ? `<div class="btn-owned" style="color:#ff9800; border-color:rgba(255,152,0,0.3)">MAX</div>` : canAffordTS ?
-        `<button class="btn-buy" id="buy-ts-btn"><img src="coin.png" alt=""> 160</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> 160</button>`
+        `<button class="btn-buy" id="buy-ts-btn"><img src="coin.png" alt=""> ${tsCost}</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> ${tsCost}</button>`
       }
     </div>
   `;
@@ -872,8 +899,8 @@ function renderShop() {
 
   if (document.getElementById('buy-ts-btn')) {
     document.getElementById('buy-ts-btn').addEventListener('click', async () => {
-      if (persist.totalPesos >= 160 && persist.timestopCount < 5) {
-        persist.totalPesos -= 160;
+      if (persist.totalPesos >= tsCost && persist.timestopCount < maxStock) {
+        persist.totalPesos -= tsCost;
         persist.timestopCount++;
         await saveProgress(persist);
         renderShop();
@@ -881,20 +908,21 @@ function renderShop() {
     });
   }
 
+  // Frame 3: Linear Progression Upgrades Tiers Node
   const currentTierIndex = persist.timestopLevel;
-  const maxTierReached = currentTierIndex >= UPGRADE_TIERS.length;
-  const nextUpgrade = !maxTierReached ? UPGRADE_TIERS[currentTierIndex] : null;
+  const maxTierReached = currentTierIndex >= GAME_CONFIG.upgradeTiers.length;
+  const nextUpgrade = !maxTierReached ? GAME_CONFIG.upgradeTiers[currentTierIndex] : null;
   const canAffordUpgrade = nextUpgrade ? persist.totalPesos >= nextUpgrade.cost : false;
 
   const elTSUpgrade = document.createElement('div');
   elTSUpgrade.className = 'shop-item' + (maxTierReached ? ' owned' : '');
   elTSUpgrade.innerHTML = `
     <div class="shop-item-icon" style="background:rgba(255,215,0,0.05); border-color:rgba(255,215,0,0.2)">
-      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(45deg)" onerror="this.style.display='none'">
+      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(165deg)" onerror="this.style.display='none'">
     </div>
     <div class="shop-item-info">
       <span class="upgrade-badge">LVL ${currentTierIndex}</span>
-      <div class="shop-item-name">Chronos Upgrade</div>
+      <div class="shop-item-name">Hydra Cooldown</div>
       <div class="shop-item-desc">${maxTierReached ? 'Maximum capability unlock reached!' : nextUpgrade.desc}</div>
     </div>
     <div class="shop-item-action">
@@ -919,7 +947,7 @@ function renderShop() {
 }
 
 /* ════════════════════════════════════════════
-   EVENT LISTENERS
+   USER INPUT EVENT SYSTEM
    ════════════════════════════════════════════ */
 document.getElementById('btn-play').addEventListener('click', startGame);
 document.getElementById('btn-play-again').addEventListener('click', startGame);
@@ -930,8 +958,7 @@ document.getElementById('btn-open-shop').addEventListener('click', () => {
 document.getElementById('btn-close-shop').addEventListener('click', showMainMenu);
 
 usePowerupBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  triggerTimeStop();
+  e.stopPropagation(); triggerTimeStop();
 });
 
 let lastTouchX = null;
@@ -939,7 +966,8 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.
 canvas.addEventListener('touchmove', e => {
   e.preventDefault(); if (!gameRunning) return;
   const tx = e.touches[0].clientX, dx = tx - lastTouchX; lastTouchX = tx;
-  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * 1.65));
+  const sens = GAME_CONFIG.bucket.touchSpeedScale;
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * sens));
 }, {passive: false});
 
 canvas.addEventListener('mousemove', e => {
@@ -949,20 +977,20 @@ canvas.addEventListener('mousemove', e => {
 
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const s = W * 0.12; 
-  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
-  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
+  const stepSize = W * GAME_CONFIG.bucket.keyboardStepRatio;
+  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - stepSize);
+  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + stepSize);
   if (e.key === ' ' || e.key === 'Spacebar') {
-    e.preventDefault();
-    triggerTimeStop();
+    e.preventDefault(); triggerTimeStop();
   }
 });
 
 /* ════════════════════════════════════════════
-   INIT
+   INITIALIZATION BOOTSTRAP
    ════════════════════════════════════════════ */
 (async () => {
   await cgInit();
+  await preloadAudio();
   const saved = await loadProgress();
   if (saved) {
     persist.totalPesos = saved.totalPesos || 0;
@@ -976,6 +1004,7 @@ window.addEventListener('keydown', e => {
     loadImg('shop', 'shop.png'),
     loadImg('hourglass', 'hourglass.png')
   ]);
+  resize();
   draw();
   showMainMenu();
 })();
