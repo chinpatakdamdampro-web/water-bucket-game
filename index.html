@@ -35,6 +35,65 @@ body {
 .hud-lives-count { font-size:18px; font-weight:800; color:#ff6b6b; }
 .hud-lives-label { font-size:10px; color:rgba(255,107,107,0.7); text-transform:uppercase; letter-spacing:1px; }
 
+/* ── POWERUP CONTROLLER OVERLAY ── */
+#powerup-container {
+  position: fixed;
+  top: max(env(safe-area-inset-top), 80px);
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.powerup-btn {
+  width: 56px;
+  height: 56px;
+  background: rgba(10, 22, 40, 0.85);
+  border: 2px solid #4fc3f7;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  position: relative;
+  transition: transform 0.1s;
+}
+.powerup-btn:active {
+  transform: scale(0.92);
+}
+.powerup-btn.disabled {
+  border-color: rgba(160,210,255,0.2);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.powerup-btn img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.powerup-count {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #ff9800;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1.5px solid #0a1628;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.powerup-btn.active-pulse {
+  border-color: #ffd700;
+  animation: pulseGlow 1s infinite alternate;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 4px rgba(255,215,0,0.4); }
+  100% { box-shadow: 0 0 16px rgba(255,215,0,0.8); }
+}
+
 canvas { display:block; touch-action:none; }
 
 /* ── SCREENS (overlay) ── */
@@ -84,22 +143,17 @@ canvas { display:block; touch-action:none; }
   -webkit-user-select:none; user-select:none;
 }
 
-/* ══════════════════════════════════════════
-   SHOP BUTTON CONFIGURATION (EDITABLE)
-   ══════════════════════════════════════════
-   Edit these values to customize the shop button size and appearance
-*/
 .btn-shop img { 
-  width: 220px;           /* Icon width - change to 64px, 80px, etc for larger */
-  height: 60px;          /* Icon height - keep same as width for square icons */
+  width: 220px;           
+  height: 60px;          
   object-fit: contain;
 }
 
 .btn-shop.icon-only { 
-  font-size: 0;          /* Hides "Shop" text */
-  padding: 16px 52px;    /* Horizontal spacing around icon */
-  min-height: 56px;      /* Button height - change to 70px, 80px, etc for taller */
-  width: auto;           /* Button width - keep auto for flexible, or set to 80px, 100px, etc */
+  font-size: 0;          
+  padding: 16px 52px;    
+  min-height: 56px;      
+  width: auto;           
 }
 
 .btn-secondary {
@@ -222,7 +276,6 @@ canvas { display:block; touch-action:none; }
 </head>
 <body>
 
-<!-- HUD -->
 <div id="hud">
   <div class="hud-item">
     <span class="hud-label">Score</span>
@@ -240,10 +293,16 @@ canvas { display:block; touch-action:none; }
   </div>
 </div>
 
+<div id="powerup-container" class="hidden">
+  <button class="powerup-btn id="btn-use-timestop" title="Use Time Stop (Spacebar)">
+    <img src="hourglass.png" alt="⏳" id="powerup-icon-img">
+    <span class="powerup-count" id="powerup-hud-count">0</span>
+  </button>
+</div>
+
 <canvas id="game"></canvas>
 <div id="combo-popup"></div>
 
-<!-- MAIN MENU -->
 <div class="screen" id="screen-menu">
   <div class="menu-title">Drop<br><span class="accent">Catch</span> 💧</div>
   <div class="menu-sub">Catch falling water drops to earn <strong style="color:#ffd700">pesos</strong>. Don't miss 3!</div>
@@ -256,7 +315,7 @@ canvas { display:block; touch-action:none; }
   <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
     <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
-  <div class="drops-tip">Swipe left or right to move the bucket</div>
+  <div class="drops-tip">Swipe left or right to move the bucket. Spacebar activations use Time Stop.</div>
   <div class="credit">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
@@ -265,7 +324,6 @@ canvas { display:block; touch-action:none; }
   </div>
 </div>
 
-<!-- GAME OVER -->
 <div class="screen hidden" id="screen-gameover">
   <div class="gameover-title">Game Over 💀</div>
   <div class="gameover-sub" id="gameover-sub">You gave it your all!</div>
@@ -292,7 +350,6 @@ canvas { display:block; touch-action:none; }
   </div>
 </div>
 
-<!-- SHOP -->
 <div class="screen hidden" id="screen-shop">
   <div class="shop-header">
     <div class="shop-title">🛒 Shop</div>
@@ -351,24 +408,59 @@ async function loadProgress() {
 }
 
 /* ════════════════════════════════════════════
+   AUDIO SYSTEM
+   ════════════════════════════════════════════ */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let timestopSound = null;
+
+// Fallback synth sound design for testing if timestop.mp3 is unavailable
+function playFallbackTimeStopSound() {
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  } catch(e){}
+}
+
+function playTimeStopAudio() {
+  const audio = new Audio('timestop.mp3');
+  audio.play().catch(() => {
+    playFallbackTimeStopSound();
+  });
+}
+
+/* ════════════════════════════════════════════
    GAME STATE & CONFIG
    ════════════════════════════════════════════ */
-const SHOP_ITEMS = [
-  {
-    id: 'bucket_upgrade',
-    name: 'Upgraded Bucket',
-    desc: 'A sturdier bucket — gives you 5 lives instead of 3.',
-    cost: 15,
-    type: 'upgrade',
-    stat: '+2 Lives',
-    owned: false,
-  }
+const UPGRADE_TIERS = [
+  { level: 1, cost: 100, duration: 5000, desc: "Upgrades time stop from 4s to 5s" },
+  { level: 2, cost: 250, duration: 6000, desc: "Upgrades time stop from 5s to 6s" },
+  { level: 3, cost: 500, duration: 7000, desc: "Upgrades time stop from 6s to 7s" },
+  { level: 4, cost: 1000, duration: 8000, desc: "Upgrades time stop from 7s to 8s" }
 ];
 
-let persist = { totalPesos: 0, purchases: [] };
+let persist = { 
+  totalPesos: 0, 
+  purchases: [],
+  timestopCount: 0,
+  timestopLevel: 0
+};
+
 let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
 let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
+
+// Time Stop System State
+let timeStopActive = false;
+let timeStopTimeRemaining = 0;
 
 /* ════════════════════════════════════════════
    CANVAS & TEXTURES
@@ -411,11 +503,42 @@ resize();
 const hudScore = document.getElementById('hud-score');
 const hudPesos = document.getElementById('hud-pesos');
 const hudLivesCount = document.getElementById('hud-lives-count');
+const powerupHUDCount = document.getElementById('powerup-hud-count');
+const usePowerupBtn = document.querySelector('.powerup-btn');
 
 function updateHUD() {
   hudScore.textContent = score;
   hudPesos.textContent = sessionPesos;
   hudLivesCount.textContent = lives;
+  powerupHUDCount.textContent = persist.timestopCount;
+  
+  if(persist.timestopCount <= 0) {
+    usePowerupBtn.classList.add('disabled');
+  } else {
+    usePowerupBtn.classList.remove('disabled');
+  }
+}
+
+/* ════════════════════════════════════════════
+   POWERUP LOGIC CHANNELS
+   ════════════════════════════════════════════ */
+function triggerTimeStop() {
+  if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
+  
+  persist.timestopCount--;
+  timeStopActive = true;
+  
+  // Calculate duration baseline based on tiers owned
+  let duration = 4000; 
+  if (persist.timestopLevel > 0) {
+    duration = UPGRADE_TIERS[persist.timestopLevel - 1].duration;
+  }
+  timeStopTimeRemaining = duration;
+  
+  playTimeStopAudio();
+  usePowerupBtn.classList.add('active-pulse');
+  updateHUD();
+  saveProgress(persist);
 }
 
 /* ════════════════════════════════════════════
@@ -586,21 +709,39 @@ function showCombo(n) {
    ════════════════════════════════════════════ */
 function update(dt) {
   if (!gameRunning) return;
-  dropTimer += dt; speedTick += dt;
-  if (speedTick > 8000) {
-    speedTick = 0;
-    dropSpeed = Math.min(dropSpeed + 0.45, 9.5);
-    dropInterval = Math.max(dropInterval - 90, 600);
+
+  if (timeStopActive) {
+    timeStopTimeRemaining -= dt;
+    if (timeStopTimeRemaining <= 0) {
+      timeStopActive = false;
+      usePowerupBtn.classList.remove('active-pulse');
+    }
   }
-  if (dropTimer > dropInterval) {
-    dropTimer = 0; spawnDrop();
-    if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
+
+  // Only advance drop creation tick and parameters if time is normal
+  if (!timeStopActive) {
+    dropTimer += dt; speedTick += dt;
+    if (speedTick > 8000) {
+      speedTick = 0;
+      dropSpeed = Math.min(dropSpeed + 0.45, 9.5);
+      dropInterval = Math.max(dropInterval - 90, 600);
+    }
+    if (dropTimer > dropInterval) {
+      dropTimer = 0; spawnDrop();
+      if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
+    }
   }
+
   bucket.x += (bucket.targetX - bucket.x) * 0.2;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
-    d.y += d.speed * (dt / 16);
+    
+    // Lock drop calculation positional changes when time stop is operational
+    if (!timeStopActive) {
+      d.y += d.speed * (dt / 16);
+    }
+    
     const bL = bucket.x - 5, bR = bucket.x + bucket.w + 5, bT = bucket.y - 5;
     if (d.y + d.r >= bT && d.y - d.r < bT + 18 && d.x >= bL && d.x <= bR) {
       score++; sessionPesos += 5; combo++;
@@ -624,10 +765,19 @@ function update(dt) {
 }
 
 function draw() {
+  ctx.save();
+  
+  // Custom Gray-Contrast Shader Implementation for rendering frame profiles
+  if (timeStopActive) {
+    ctx.filter = "grayscale(0.6) contrast(1.2) brightness(0.9)";
+  }
+  
   drawBg();
   for (const d of drops) drawDrop(d);
   drawBucket();
   drawParticles();
+  
+  ctx.restore();
 }
 
 function loop(ts) {
@@ -647,6 +797,12 @@ const screens = {
 
 function showScreen(name) {
   Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
+  
+  if (name === null) {
+    document.getElementById('powerup-container').classList.remove('hidden');
+  } else {
+    document.getElementById('powerup-container').classList.add('hidden');
+  }
 }
 
 function showMainMenu() {
@@ -660,9 +816,13 @@ function startGame() {
   dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
   lives = MAX_LIVES;
+  timeStopActive = false;
+  timeStopTimeRemaining = 0;
+  usePowerupBtn.classList.remove('active-pulse');
+  
   bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
-  updateHUD(); showScreen(null);
-  Object.values(screens).forEach(el => el.classList.add('hidden'));
+  updateHUD(); 
+  showScreen(null);
   gameRunning = true; lastTime = performance.now();
   animFrame = requestAnimationFrame(loop);
 }
@@ -679,53 +839,123 @@ async function endGame() {
 }
 
 /* ════════════════════════════════════════════
-   SHOP
+   SHOP ARCHITECTURE WITH NESTED DATA UPGRADES
    ════════════════════════════════════════════ */
 function renderShop() {
   document.getElementById('shop-pesos-count').textContent = persist.totalPesos;
   const container = document.getElementById('shop-items');
   container.innerHTML = '';
 
-  SHOP_ITEMS.forEach(item => {
-    const owned = persist.purchases.includes(item.id);
-    const canAfford = persist.totalPesos >= item.cost;
-    const el = document.createElement('div');
-    el.className = 'shop-item' + (owned ? ' owned' : '');
-    el.innerHTML = `
-      <div class="shop-item-icon">
-        <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
-      </div>
-      <div class="shop-item-info">
-        ${owned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
-        <div class="shop-item-name">${item.name}</div>
-        <div class="shop-item-desc">${item.desc}</div>
-      </div>
-      <div class="shop-item-action">
-        ${owned ? `<div class="btn-owned">✓ Owned</div>` : canAfford ?
-          `<button class="btn-buy" data-id="${item.id}">
-            <img src="coin.png" alt="" onerror="this.style.display='none'"> ${item.cost}
-           </button>` :
-          `<button class="btn-buy cant-afford" disabled>
-            <img src="coin.png" alt="" onerror="this.style.display='none'"> ${item.cost}
-           </button>`
-        }
-      </div>
-    `;
-    container.appendChild(el);
-  });
-
-  container.querySelectorAll('.btn-buy:not(.cant-afford)').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
-      const item = SHOP_ITEMS.find(i => i.id === id);
-      if (!item || persist.purchases.includes(id)) return;
-      if (persist.totalPesos < item.cost) return;
-      persist.totalPesos -= item.cost;
-      persist.purchases.push(id);
-      await saveProgress(persist);
-      renderShop();
+  // Element Item 1: Bucket Upgrade
+  const bucketOwned = persist.purchases.includes('bucket_upgrade');
+  const canAffordBucket = persist.totalPesos >= 15;
+  const elBucket = document.createElement('div');
+  elBucket.className = 'shop-item' + (bucketOwned ? ' owned' : '');
+  elBucket.innerHTML = `
+    <div class="shop-item-icon">
+      <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      ${bucketOwned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
+      <div class="shop-item-name">Upgraded Bucket</div>
+      <div class="shop-item-desc">A sturdier bucket — gives you 5 lives instead of 3.</div>
+    </div>
+    <div class="shop-item-action">
+      ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
+        `<button class="btn-buy" id="buy-bucket-btn">
+          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
+         </button>` :
+        `<button class="btn-buy cant-afford" disabled>
+          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
+         </button>`
+      }
+    </div>
+  `;
+  container.appendChild(elBucket);
+  
+  if (document.getElementById('buy-bucket-btn')) {
+    document.getElementById('buy-bucket-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= 15) {
+        persist.totalPesos -= 15;
+        persist.purchases.push('bucket_upgrade');
+        await saveProgress(persist);
+        renderShop();
+      }
     });
-  });
+  }
+
+  // Element Item 2: Consumable Time Stop Powerup Module
+  const canAffordTS = persist.totalPesos >= 160;
+  const atMaxCount = persist.timestopCount >= 5;
+  const elTimeStop = document.createElement('div');
+  elTimeStop.className = 'shop-item';
+  elTimeStop.innerHTML = `
+    <div class="shop-item-icon">
+      <img src="hourglass.png" alt="⏳" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">
+        Stock: ${persist.timestopCount}/5
+      </span>
+      <div class="shop-item-name">Time Stop Power-up</div>
+      <div class="shop-item-desc">Freezes all active falling liquid droplets in space temporarily. Accessible during playspace runs.</div>
+    </div>
+    <div class="shop-item-action">
+      ${atMaxCount ? `<div class="btn-owned" style="color:#ff9800; border-color:rgba(255,152,0,0.3)">MAX</div>` : canAffordTS ?
+        `<button class="btn-buy" id="buy-ts-btn"><img src="coin.png" alt=""> 160</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> 160</button>`
+      }
+    </div>
+  `;
+  container.appendChild(elTimeStop);
+
+  if (document.getElementById('buy-ts-btn')) {
+    document.getElementById('buy-ts-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= 160 && persist.timestopCount < 5) {
+        persist.totalPesos -= 160;
+        persist.timestopCount++;
+        await saveProgress(persist);
+        renderShop();
+      }
+    });
+  }
+
+  // Element Item 3: Linear Progression Upgrade Tiers
+  const currentTierIndex = persist.timestopLevel;
+  const maxTierReached = currentTierIndex >= UPGRADE_TIERS.length;
+  const nextUpgrade = !maxTierReached ? UPGRADE_TIERS[currentTierIndex] : null;
+  const canAffordUpgrade = nextUpgrade ? persist.totalPesos >= nextUpgrade.cost : false;
+
+  const elTSUpgrade = document.createElement('div');
+  elTSUpgrade.className = 'shop-item' + (maxTierReached ? ' owned' : '');
+  elTSUpgrade.innerHTML = `
+    <div class="shop-item-icon" style="background:rgba(255,215,0,0.05); border-color:rgba(255,215,0,0.2)">
+      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(45deg)" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      <span class="upgrade-badge">LVL ${currentTierIndex}</span>
+      <div class="shop-item-name">Chronos Upgrade</div>
+      <div class="shop-item-desc">${maxTierReached ? 'Maximum capability unlock reached!' : nextUpgrade.desc}</div>
+    </div>
+    <div class="shop-item-action">
+      ${maxTierReached ? `<div class="btn-owned">ELITE</div>` : canAffordUpgrade ?
+        `<button class="btn-buy" id="buy-ts-up-btn"><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>`
+      }
+    </div>
+  `;
+  container.appendChild(elTSUpgrade);
+
+  if (document.getElementById('buy-ts-up-btn') && nextUpgrade) {
+    document.getElementById('buy-ts-up-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= nextUpgrade.cost) {
+        persist.totalPesos -= nextUpgrade.cost;
+        persist.timestopLevel++;
+        await saveProgress(persist);
+        renderShop();
+      }
+    });
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -738,6 +968,12 @@ document.getElementById('btn-open-shop').addEventListener('click', () => {
   renderShop(); showScreen('shop');
 });
 document.getElementById('btn-close-shop').addEventListener('click', showMainMenu);
+
+// Interactive HUD elements
+usePowerupBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  triggerTimeStop();
+});
 
 let lastTouchX = null;
 canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.touches[0].clientX; }, {passive: false});
@@ -755,6 +991,10 @@ window.addEventListener('keydown', e => {
   const s = W * 0.06;
   if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
   if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();
+    triggerTimeStop();
+  }
 });
 
 /* ════════════════════════════════════════════
@@ -766,11 +1006,14 @@ window.addEventListener('keydown', e => {
   if (saved) {
     persist.totalPesos = saved.totalPesos || 0;
     persist.purchases = saved.purchases || [];
+    persist.timestopCount = saved.timestopCount || 0;
+    persist.timestopLevel = saved.timestopLevel || 0;
   }
   await Promise.all([
     loadImg('bucket', 'bucket.png'),
     loadImg('coin', 'coin.png'),
     loadImg('shop', 'shop.png'),
+    loadImg('hourglass', 'hourglass.png')
   ]);
   draw();
   showMainMenu();
