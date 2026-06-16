@@ -469,8 +469,8 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
 
-const BUCKET_H = 62;
-const BUCKET_W_RATIO = 0.27;
+const BUCKET_H = 82;
+const BUCKET_W_RATIO = 0.24;
 let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
 let drops = [], particles = [];
 
@@ -527,6 +527,7 @@ function triggerTimeStop() {
   
   persist.timestopCount--;
   timeStopActive = true;
+  drops.forEach(d => { d.slowTimeRemaining = 3000; });
   
   // Calculate duration baseline based on tiers owned
   let duration = 4000; 
@@ -732,7 +733,7 @@ function update(dt) {
     }
   }
 
-  bucket.x += (bucket.targetX - bucket.x) * 0.2;
+  bucket.x += (bucket.targetX - bucket.x) * 0.45;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
@@ -988,7 +989,7 @@ canvas.addEventListener('mousemove', e => {
 });
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const s = W * 0.06;
+  const s = W * 0.12;
   if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
   if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
   if (e.key === ' ' || e.key === 'Spacebar') {
