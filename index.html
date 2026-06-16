@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<title>Drop Catch</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #0a1628;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: rgba(10, 22, 40, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    border-bottom: 1px solid rgba(100, 180, 255, 0.15);
+  }
+
+  .hud-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hud-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(160, 210, 255, 0.6);
+    font-weight: 500;
+  }
+
+  .hud-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+
+  .hud-value.coins { color: #ffd700; }
+  .hud-value.lives { color: #ff6b6b; }
+
+  canvas {
+    display: block;
+    touch-action: none;
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 22, 40, 0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    padding: 24px;
+  }
+
+  #overlay.hidden { display: none; }
+
+  .overlay-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .overlay-title span { color: #4fc3f7; }
+
+  .overlay-sub {
+    font-size: 15px;
+    color: rgba(160, 210, 255, 0.7);
+    text-align: center;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(79, 195, 247, 0.08);
+    border: 1px solid rgba(79, 195, 247, 0.2);
+    border-radius: 12px;
+    padding: 14px 24px;
+    min-width: 110px;
+  }
+
+  .stat-box-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(160, 210, 255, 0.6);
+    margin-bottom: 4px;
+  }
+
+  .stat-box-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .stat-box-value.gold { color: #ffd700; }
+
+  .btn-play {
+    background: linear-gradient(135deg, #4fc3f7, #0288d1);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 52px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: transform 0.1s, opacity 0.1s;
+    -webkit-user-select: none;
+  }
+
+  .btn-play:active { transform: scale(0.96); opacity: 0.9; }
+
+  .drops-tip {
+    margin-top: 24px;
+    font-size: 12px;
+    color: rgba(160, 210, 255, 0.45);
+    text-align: center;
+  }
+
+  #combo-popup {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="hud-item">
+    <span class="hud-label">Score</span>
+    <span class="hud-value" id="hud-score">0</span>
+  </div>
+  <div class="hud-item">
+    <span class="hud-label">Coins</span>
+    <span class="hud-value coins" id="hud-coins">0</span>
+  </div>
+  <div class="hud-item">
+    <span class="hud-label">Lives</span>
+    <span class="hud-value lives" id="hud-lives">❤❤❤</span>
+  </div>
+</div>
+
+<canvas id="game"></canvas>
+
+<div id="combo-popup" id="combo-popup"></div>
+
+<div id="overlay">
+  <div class="overlay-title">Drop<br><span>Catch</span> 💧</div>
+  <div class="overlay-sub" id="overlay-sub">
+    Slide the bucket to catch falling water drops.<br>Each drop earns <strong style="color:#ffd700">5 coins</strong>. Don't miss 3!
+  </div>
+  <div class="stat-row" id="stat-row" style="display:none">
+    <div class="stat-box">
+      <span class="stat-box-label">Score</span>
+      <span class="stat-box-value" id="end-score">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-box-label">Coins</span>
+      <span class="stat-box-value gold" id="end-coins">0</span>
+    </div>
+  </div>
+  <button class="btn-play" id="btn-play">Play</button>
+  <div class="drops-tip">Drag or swipe left/right to move the bucket</div>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const btnPlay = document.getElementById('btn-play');
+const hudScore = document.getElementById('hud-score');
+const hudCoins = document.getElementById('hud-coins');
+const hudLives = document.getElementById('hud-lives');
+const overlaySub = document.getElementById('overlay-sub');
+const statRow = document.getElementById('stat-row');
+const endScore = document.getElementById('end-score');
+const endCoins = document.getElementById('end-coins');
+const comboPopup = document.getElementById('combo-popup');
+
+let W, H;
+let gameRunning = false;
+let animFrame;
+
+const BUCKET_H = 52;
+const BUCKET_W_RATIO = 0.22;
+const COINS_PER_DROP = 5;
+const MAX_LIVES = 3;
+
+let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
+let drops = [];
+let particles = [];
+let splashes = [];
+let score = 0;
+let coins = 0;
+let lives = MAX_LIVES;
+let combo = 0;
+let dropInterval = 1400;
+let dropTimer = 0;
+let lastTime = 0;
+let dropSpeed = 3.5;
+let speedTick = 0;
+let gameOver = false;
+let comboTimeout = null;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  bucket.w = W * BUCKET_W_RATIO;
+  bucket.y = H - 80;
+  if (!gameRunning) {
+    bucket.x = W / 2 - bucket.w / 2;
+    bucket.targetX = bucket.x;
+  }
+}
+
+window.addEventListener('resize', resize);
+resize();
+
+function livesDisplay(n) {
+  return '❤'.repeat(n) + '🖤'.repeat(MAX_LIVES - n);
+}
+
+function spawnDrop() {
+  const x = Math.random() * (W - 24) + 12;
+  drops.push({
+    x,
+    y: -20,
+    r: 9 + Math.random() * 5,
+    speed: dropSpeed + Math.random() * 1.5,
+    wobble: Math.random() * Math.PI * 2,
+    hue: 190 + Math.floor(Math.random() * 40),
+  });
+}
+
+function spawnCatchParticles(x, y, hue) {
+  for (let i = 0; i < 14; i++) {
+    const angle = (Math.PI * 2 / 14) * i + Math.random() * 0.4;
+    const speed = 1.5 + Math.random() * 3.5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 3,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.03,
+      r: 2 + Math.random() * 3,
+      hue,
+    });
+  }
+}
+
+function spawnMissParticles(x, y) {
+  for (let i = 0; i < 8; i++) {
+    const angle = Math.PI + (Math.random() - 0.5) * 1.2;
+    const speed = 1 + Math.random() * 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1,
+      life: 1,
+      decay: 0.04 + Math.random() * 0.03,
+      r: 2 + Math.random() * 3,
+      hue: 0,
+      miss: true,
+    });
+  }
+}
+
+function showCombo(n) {
+  if (n < 3) return;
+  const msgs = { 3: '3x Combo! +15', 5: '5x Combo! +25', 10: '10x Streak! 🔥', 20: 'UNSTOPPABLE! 🔥🔥' };
+  const msg = msgs[n] || (n >= 20 ? msgs[20] : null);
+  if (!msg) return;
+  comboPopup.textContent = msg;
+  comboPopup.style.opacity = '1';
+  clearTimeout(comboTimeout);
+  comboTimeout = setTimeout(() => { comboPopup.style.opacity = '0'; }, 1400);
+}
+
+function update(dt) {
+  if (!gameRunning) return;
+
+  dropTimer += dt;
+  speedTick += dt;
+
+  if (speedTick > 8000) {
+    speedTick = 0;
+    dropSpeed = Math.min(dropSpeed + 0.4, 9);
+    dropInterval = Math.max(dropInterval - 80, 650);
+  }
+
+  if (dropTimer > dropInterval) {
+    dropTimer = 0;
+    spawnDrop();
+    if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
+  }
+
+  bucket.x += (bucket.targetX - bucket.x) * 0.22;
+
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i];
+    d.y += d.speed * (dt / 16);
+    d.wobble += 0.05;
+
+    const bLeft = bucket.x - 4;
+    const bRight = bucket.x + bucket.w + 4;
+    const bTop = bucket.y - 8;
+
+    if (d.y + d.r >= bTop && d.y - d.r < bTop + 20 && d.x >= bLeft && d.x <= bRight) {
+      score++;
+      coins += COINS_PER_DROP;
+      combo++;
+      hudScore.textContent = score;
+      hudCoins.textContent = coins;
+      showCombo(combo);
+      spawnCatchParticles(d.x, bTop, d.hue);
+      drops.splice(i, 1);
+      continue;
+    }
+
+    if (d.y > H + 20) {
+      spawnMissParticles(d.x, H - 30);
+      lives--;
+      combo = 0;
+      hudLives.textContent = livesDisplay(lives);
+      drops.splice(i, 1);
+      if (lives <= 0) endGame();
+    }
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.18;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawBucket() {
+  const bx = bucket.x, by = bucket.y, bw = bucket.w, bh = bucket.h;
+  const lip = 7;
+
+  ctx.save();
+
+  const grad = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+  grad.addColorStop(0, '#29b6f6');
+  grad.addColorStop(1, '#0277bd');
+  ctx.fillStyle = grad;
+
+  ctx.beginPath();
+  ctx.moveTo(bx - lip, by - 2);
+  ctx.lineTo(bx + bw + lip, by - 2);
+  ctx.lineTo(bx + bw - 4, by + bh);
+  ctx.lineTo(bx + 4, by + bh);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.moveTo(bx - lip + 4, by);
+  ctx.lineTo(bx + bw * 0.42, by);
+  ctx.lineTo(bx + bw * 0.35, by + bh * 0.85);
+  ctx.lineTo(bx + 8, by + bh * 0.85);
+  ctx.closePath();
+  ctx.fill();
+
+  const waterLevel = by + 14;
+  ctx.fillStyle = 'rgba(79, 195, 247, 0.55)';
+  ctx.beginPath();
+  ctx.moveTo(bx, waterLevel);
+  ctx.lineTo(bx + bw, waterLevel);
+  ctx.lineTo(bx + bw - 4, by + bh - 2);
+  ctx.lineTo(bx + 4, by + bh - 2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawDrop(d) {
+  ctx.save();
+  const wobbleX = Math.sin(d.wobble) * 1.5;
+
+  const grad = ctx.createRadialGradient(d.x + wobbleX - d.r * 0.3, d.y - d.r * 0.3, 1, d.x + wobbleX, d.y, d.r);
+  grad.addColorStop(0, `hsla(${d.hue}, 90%, 90%, 0.95)`);
+  grad.addColorStop(0.5, `hsla(${d.hue}, 80%, 65%, 0.85)`);
+  grad.addColorStop(1, `hsla(${d.hue}, 70%, 45%, 0.7)`);
+
+  ctx.beginPath();
+  ctx.arc(d.x + wobbleX, d.y, d.r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(d.x + wobbleX - d.r * 0.28, d.y - d.r * 0.28, d.r * 0.32, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life);
+    if (p.miss) {
+      ctx.fillStyle = `rgba(255, 80, 80, ${p.life})`;
+    } else {
+      ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.life})`;
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawBg() {
+  ctx.fillStyle = '#0a1628';
+  ctx.fillRect(0, 0, W, H);
+
+  for (let i = 0; i < 3; i++) {
+    const gx = W * (0.2 + i * 0.3);
+    const gy = H * 0.3;
+    const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 200);
+    grad.addColorStop(0, `rgba(79, 195, 247, 0.04)`);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.strokeStyle = 'rgba(100, 180, 255, 0.07)';
+  ctx.lineWidth = 1;
+  for (let y = 80; y < H; y += 60) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+}
+
+function draw() {
+  drawBg();
+  for (const d of drops) drawDrop(d);
+  drawBucket();
+  drawParticles();
+}
+
+function loop(ts) {
+  const dt = Math.min(ts - lastTime, 50);
+  lastTime = ts;
+  update(dt);
+  draw();
+  if (gameRunning) animFrame = requestAnimationFrame(loop);
+}
+
+function startGame() {
+  drops = [];
+  particles = [];
+  score = 0;
+  coins = 0;
+  lives = MAX_LIVES;
+  combo = 0;
+  dropInterval = 1400;
+  dropTimer = 0;
+  dropSpeed = 3.5;
+  speedTick = 0;
+  gameOver = false;
+  bucket.x = W / 2 - bucket.w / 2;
+  bucket.targetX = bucket.x;
+
+  hudScore.textContent = '0';
+  hudCoins.textContent = '0';
+  hudLives.textContent = livesDisplay(MAX_LIVES);
+
+  overlay.classList.add('hidden');
+  gameRunning = true;
+  lastTime = performance.now();
+  animFrame = requestAnimationFrame(loop);
+}
+
+function endGame() {
+  gameRunning = false;
+  cancelAnimationFrame(animFrame);
+  gameOver = true;
+
+  overlaySub.innerHTML = `You caught <strong style="color:#4fc3f7">${score} drops</strong> and earned some serious coins. Try again?`;
+  statRow.style.display = 'flex';
+  endScore.textContent = score;
+  endCoins.textContent = coins;
+  btnPlay.textContent = 'Play Again';
+  overlay.classList.remove('hidden');
+}
+
+btnPlay.addEventListener('click', startGame);
+
+let touchStartX = null;
+let lastTouchX = null;
+
+canvas.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  lastTouchX = touchStartX;
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (!gameRunning) return;
+  const tx = e.touches[0].clientX;
+  const dx = tx - lastTouchX;
+  lastTouchX = tx;
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * 1.1));
+}, { passive: true });
+
+canvas.addEventListener('mousemove', e => {
+  if (!gameRunning) return;
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.clientX - bucket.w / 2));
+});
+
+window.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  const step = W * 0.06;
+  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - step);
+  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + step);
+});
+
+draw();
+</script>
+</body>
+</html>
