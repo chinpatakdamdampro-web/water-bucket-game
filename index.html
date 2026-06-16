@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Drop Catch</title>
+<script src="config.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
 body {
   background:#0a1628;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -26,7 +26,7 @@ body {
   padding-top:max(env(safe-area-inset-top),14px);
   background:rgba(10,22,40,0.92); z-index:10;
   border-bottom:1px solid rgba(100,180,255,0.15);
-  backdrop-filter: blur(8px);
+  backdrop-filter:blur(8px);
 }
 .hud-item { display:flex; flex-direction:column; align-items:center; }
 .hud-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(160,210,255,0.6); font-weight:500; }
@@ -37,55 +37,61 @@ body {
 .hud-lives-display { display:flex; align-items:center; gap:5px; margin-top:2px; }
 .hud-lives-count { font-size:18px; font-weight:800; color:#ff6b6b; }
 .hud-lives-label { font-size:10px; color:rgba(255,107,107,0.7); text-transform:uppercase; letter-spacing:1px; }
+/* Timer in HUD center */
+#hud-timer { font-size:14px; font-weight:700; color:rgba(160,210,255,0.85); letter-spacing:0.5px; margin-top:1px; }
 
-/* ── POWERUP OVERLAY ── */
+/* ── POWERUP SIDEBAR ── */
 #powerup-container {
-  position: fixed;
-  top: max(env(safe-area-inset-top), 86px);
-  right: 20px;
-  z-index: 15;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position:fixed;
+  top:max(env(safe-area-inset-top),86px);
+  right:14px;
+  z-index:15;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
 }
 .powerup-btn {
-  width: 72px;
-  height: 72px;
-  background: rgba(10, 22, 40, 0.9);
-  border: 2.5px solid #4fc3f7;
-  border-radius: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-  position: relative;
-  transition: transform 0.1s;
+  width:64px; height:64px;
+  background:rgba(10,22,40,0.92);
+  border:2.5px solid #4fc3f7;
+  border-radius:18px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,0.5);
+  position:relative;
+  transition:transform 0.1s;
+  gap:2px;
 }
-.powerup-btn:active { transform: scale(0.9); }
-.powerup-btn.disabled { border-color: rgba(160,210,255,0.2); opacity: 0.4; cursor: not-allowed; }
-.powerup-btn img { width: 42px; height: 42px; object-fit: contain; }
-
+.powerup-btn:active { transform:scale(0.9); }
+.powerup-btn.disabled { border-color:rgba(160,210,255,0.15); opacity:0.35; cursor:not-allowed; }
+.powerup-btn .pw-icon { font-size:26px; line-height:1; }
+.powerup-btn .pw-img { width:34px; height:34px; object-fit:contain; }
 .powerup-count {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  background: #ff9800;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 12px;
-  border: 2px solid #0a1628;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  position:absolute; bottom:-4px; right:-4px;
+  background:#ff9800; color:#fff;
+  font-size:11px; font-weight:800;
+  padding:2px 7px; border-radius:10px;
+  border:2px solid #0a1628;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
+}
+.powerup-label {
+  font-size:8px; font-weight:700; letter-spacing:0.5px;
+  text-transform:uppercase; color:rgba(160,210,255,0.55);
+  line-height:1;
 }
 .powerup-btn.active-pulse {
-  border-color: #ffd700;
-  animation: pulseGlow 0.6s infinite alternate;
+  border-color:#ffd700;
+  animation:pulseGlow 0.6s infinite alternate;
 }
+.powerup-btn.magnet-active { border-color:#a78bfa; animation:magnetGlow 0.5s infinite alternate; }
 @keyframes pulseGlow {
-  0% { box-shadow: 0 0 4px rgba(255,215,0,0.4); }
-  100% { box-shadow: 0 0 22px rgba(255,215,0,0.9); }
+  0% { box-shadow:0 0 4px rgba(255,215,0,0.4); }
+  100% { box-shadow:0 0 22px rgba(255,215,0,0.9); }
+}
+@keyframes magnetGlow {
+  0% { box-shadow:0 0 4px rgba(167,139,250,0.4); }
+  100% { box-shadow:0 0 22px rgba(167,139,250,0.9); }
 }
 
 canvas { display:block; touch-action:none; }
@@ -96,25 +102,18 @@ canvas { display:block; touch-action:none; }
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   z-index:20; padding:24px;
   padding-bottom:max(env(safe-area-inset-bottom),24px);
-  background:rgba(8, 16, 28, 0.97);
+  background:rgba(8,16,28,0.97);
 }
 .screen.hidden { display:none; }
 
 /* ── MAIN MENU ── */
-.menu-title {
-  font-size:48px; font-weight:800; color:#fff;
-  text-align:center; line-height:1.0; margin-bottom:8px; letter-spacing:-1px;
-}
+.menu-title { font-size:48px; font-weight:800; color:#fff; text-align:center; line-height:1.0; margin-bottom:8px; letter-spacing:-1px; }
 .menu-title .accent { color:#4fc3f7; }
-.menu-sub {
-  font-size:14px; color:rgba(160,210,255,0.6);
-  text-align:center; margin-bottom:40px; line-height:1.6; max-width:260px;
-}
+.menu-sub { font-size:14px; color:rgba(160,210,255,0.6); text-align:center; margin-bottom:32px; line-height:1.6; max-width:260px; }
 .menu-pesos-badge {
   display:flex; align-items:center; gap:8px;
-  background:rgba(255,215,0,0.08);
-  border:1px solid rgba(255,215,0,0.2);
-  border-radius:12px; padding:10px 18px; margin-bottom:32px;
+  background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.2);
+  border-radius:12px; padding:10px 18px; margin-bottom:28px;
 }
 .menu-pesos-badge img { width:22px; height:22px; object-fit:contain; }
 .menu-pesos-badge span { font-size:15px; color:#ffd700; font-weight:700; }
@@ -126,125 +125,144 @@ canvas { display:block; touch-action:none; }
   border:none; border-radius:50px; padding:16px 52px;
   font-size:18px; font-weight:700; color:#fff; cursor:pointer;
   -webkit-user-select:none; user-select:none; min-height:54px; width:220px;
-  text-align:center; box-shadow: 0 4px 14px rgba(2, 136, 209, 0.4);
+  text-align:center; box-shadow:0 4px 14px rgba(2,136,209,0.4);
 }
 .btn-shop {
-  background:transparent; border:none; padding:0; cursor:pointer; margin-top:16px; 
+  background:transparent; border:none; padding:0; cursor:pointer; margin-top:16px;
   height:44px; width:220px; display:flex; align-items:center; justify-content:center;
   -webkit-user-select:none; user-select:none;
 }
-.btn-shop img { width: 100%; height: 100%; object-fit: fill; border-radius: 4px; }
+.btn-shop img { width:100%; height:100%; object-fit:fill; border-radius:4px; }
 .btn-secondary {
   background:transparent; border:1.5px solid rgba(100,180,255,0.3);
   border-radius:50px; padding:13px 36px; font-size:15px; font-weight:600; color:rgba(160,210,255,0.75);
-  cursor:pointer; margin-top:12px; min-height:48px; width:220px; -webkit-user-select:none; user-select:none;
+  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
+  -webkit-user-select:none; user-select:none;
 }
-.drops-tip { margin-top:24px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; line-height:1.4; }
+.drops-tip { margin-top:20px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; line-height:1.5; }
 
 /* ── CREDIT ── */
-.credit { margin-top:28px; display:flex; align-items:center; gap:4px; }
+.credit { margin-top:24px; display:flex; align-items:center; gap:4px; }
 .credit-text { font-size:12px; color:rgba(160,210,255,0.35); margin-right:5px; }
 .letter-o { font-size:20px; font-weight:800; color:#4fc3f7; font-style:italic; text-shadow:0 0 10px rgba(79,195,247,0.5); }
 .credit-amp { font-size:13px; color:rgba(160,210,255,0.35); margin:0 2px; }
-.letter-s {
-  font-size:22px; font-weight:900; background:linear-gradient(135deg,#ffd700,#ff9800);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
-}
+.letter-s { font-size:22px; font-weight:900; background:linear-gradient(135deg,#ffd700,#ff9800); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4)); }
 
-/* ── GAME OVER SCREEN ── */
+/* ── GAME OVER ── */
 .gameover-title { font-size:40px; font-weight:800; color:#fff; text-align:center; margin-bottom:8px; }
-.gameover-sub { font-size:14px; color:rgba(160,210,255,0.65); text-align:center; margin-bottom:28px; line-height:1.6; max-width:270px; }
-.stat-row { display:flex; gap:16px; margin-bottom:28px; }
+.gameover-sub { font-size:14px; color:rgba(160,210,255,0.65); text-align:center; margin-bottom:20px; line-height:1.6; max-width:270px; }
+.stat-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; justify-content:center; }
 .stat-box {
   display:flex; flex-direction:column; align-items:center;
   background:rgba(79,195,247,0.07); border:1px solid rgba(79,195,247,0.2);
-  border-radius:14px; padding:14px 20px; min-width:100px;
+  border-radius:14px; padding:12px 18px; min-width:90px;
 }
-.stat-box-label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:rgba(160,210,255,0.55); margin-bottom:4px; }
-.stat-box-value { font-size:28px; font-weight:700; color:#fff; }
+.stat-box-label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:rgba(160,210,255,0.55); margin-bottom:3px; }
+.stat-box-value { font-size:26px; font-weight:700; color:#fff; }
 .stat-box-value.gold { color:#ffd700; }
-.stat-box-icon { display:flex; align-items:center; gap:6px; }
-.stat-box-icon img { width:20px; height:20px; object-fit:contain; }
+.stat-box-icon { display:flex; align-items:center; gap:5px; }
+.stat-box-icon img { width:18px; height:18px; object-fit:contain; }
 
-/* ── SHOP SCREEN ── */
-.shop-header { display:flex; align-items:center; justify-content:space-between; width:100%; max-width:360px; margin-bottom:20px; }
-.shop-title { font-size:28px; font-weight:800; color:#fff; }
-.shop-balance {
-  display:flex; align-items:center; gap:6px;
-  background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.2);
-  border-radius:20px; padding:6px 14px;
-}
+/* ── SHOP ── */
+.shop-header { display:flex; align-items:center; justify-content:space-between; width:100%; max-width:360px; margin-bottom:16px; }
+.shop-title { font-size:26px; font-weight:800; color:#fff; }
+.shop-balance { display:flex; align-items:center; gap:6px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.2); border-radius:20px; padding:6px 14px; }
 .shop-balance img { width:18px; height:18px; object-fit:contain; }
 .shop-balance span { font-size:15px; font-weight:700; color:#ffd700; }
-
-.shop-bg { width:100%; max-width:360px; border-radius:20px; overflow:hidden; margin-bottom:16px; flex:1; max-height:340px; position:relative; }
+.shop-bg { width:100%; max-width:360px; border-radius:20px; overflow:hidden; margin-bottom:14px; flex:1; max-height:380px; position:relative; }
 .shop-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.18; border-radius:20px; }
-.shop-items { position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; }
-
-.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.85); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
+.shop-items { position:relative; z-index:1; padding:14px; display:flex; flex-direction:column; gap:10px; height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.shop-item { display:flex; align-items:center; gap:12px; background:rgba(10,22,40,0.88); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:12px 14px; }
 .shop-item.owned { border-color:rgba(79,195,247,0.4); }
-.shop-item-icon {
-  width:54px; height:54px; border-radius:10px; background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2);
-  display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
-}
-.shop-item-icon img { width:46px; height:46px; object-fit:contain; }
-.shop-item-info { flex:1; }
-.shop-item-name { font-size:15px; font-weight:700; color:#fff; margin-bottom:3px; }
-.shop-item-desc { font-size:12px; color:rgba(160,210,255,0.6); line-height:1.4; }
+.shop-item-icon { width:50px; height:50px; border-radius:10px; background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; font-size:28px; }
+.shop-item-icon img { width:42px; height:42px; object-fit:contain; }
+.shop-item-info { flex:1; min-width:0; }
+.shop-item-name { font-size:14px; font-weight:700; color:#fff; margin-bottom:2px; }
+.shop-item-desc { font-size:11px; color:rgba(160,210,255,0.6); line-height:1.4; }
 .shop-item-action { flex-shrink:0; }
-.btn-buy {
-  display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#ffd700,#f59e00);
-  border:none; border-radius:20px; padding:8px 14px; font-size:13px; font-weight:700; color:#3a2000; cursor:pointer;
-  -webkit-user-select:none; user-select:none; white-space:nowrap;
-}
-.btn-buy img { width:14px; height:14px; object-fit:contain; }
+.btn-buy { display:flex; align-items:center; gap:4px; background:linear-gradient(135deg,#ffd700,#f59e00); border:none; border-radius:18px; padding:7px 12px; font-size:12px; font-weight:700; color:#3a2000; cursor:pointer; -webkit-user-select:none; user-select:none; white-space:nowrap; }
+.btn-buy img { width:13px; height:13px; object-fit:contain; }
 .btn-buy.cant-afford { background:rgba(100,120,150,0.3); color:rgba(160,210,255,0.4); border:1px solid rgba(100,180,255,0.15); cursor:default; }
-.btn-owned { background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3); border-radius:20px; padding:8px 14px; font-size:13px; font-weight:700; color:#4fc3f7; white-space:nowrap; }
-.upgrade-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.3); border-radius:6px; padding:2px 7px; font-size:11px; color:#ffd700; margin-bottom:4px; font-weight:600; }
+.btn-owned { background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3); border-radius:18px; padding:7px 12px; font-size:12px; font-weight:700; color:#4fc3f7; white-space:nowrap; }
+.upgrade-badge { display:inline-flex; align-items:center; gap:3px; background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.3); border-radius:6px; padding:2px 6px; font-size:10px; color:#ffd700; margin-bottom:3px; font-weight:600; }
 
 /* ── COMBO ── */
-#combo-popup {
-  position:fixed; top:90px; left:50%; transform:translateX(-50%);
-  font-size:22px; font-weight:800; color:#ffd700; z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap;
+#combo-popup { position:fixed; top:90px; left:50%; transform:translateX(-50%); font-size:22px; font-weight:800; color:#ffd700; z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap; }
+
+/* ── TIER BANNER ── */
+#tier-banner {
+  position:fixed; top:80px; left:50%; transform:translateX(-50%);
+  background:rgba(10,22,40,0.92); border:1px solid rgba(100,180,255,0.3);
+  border-radius:20px; padding:6px 18px;
+  font-size:13px; font-weight:700; color:#fff;
+  z-index:14; pointer-events:none; opacity:0;
+  transition:opacity 0.4s; white-space:nowrap;
 }
+
+/* ── MAGNET TIMER BAR ── */
+#magnet-bar-wrap {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  width:160px; display:none; z-index:14;
+  flex-direction:column; align-items:center; gap:3px;
+}
+#magnet-bar-label { font-size:10px; color:rgba(167,139,250,0.8); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+#magnet-bar-bg { width:100%; height:6px; background:rgba(167,139,250,0.15); border-radius:4px; overflow:hidden; }
+#magnet-bar-fill { height:100%; background:linear-gradient(90deg,#a78bfa,#7c3aed); border-radius:4px; transition:width 0.1s linear; }
 </style>
-
-<script src="config.js"></script>
-
 </head>
 <body>
 
+<!-- HUD -->
 <div id="hud">
   <div class="hud-item">
     <span class="hud-label">Score</span>
     <span class="hud-value" id="hud-score">0</span>
   </div>
   <div class="hud-item">
-    <div class="hud-lives-display" id="hud-lives-display">
+    <span class="hud-label">⏱️</span>
+    <span id="hud-timer">0:00</span>
+  </div>
+  <div class="hud-item" style="align-items:flex-end">
+    <div class="hud-lives-display">
       <span class="hud-lives-count" id="hud-lives-count">3</span>
       <span class="hud-lives-label">Lives</span>
     </div>
-  </div>
-  <div class="hud-item">
-    <span class="hud-label">Pesos</span>
-    <div class="hud-pesos-wrapper">
-      <img src="coin.png" alt="" class="hud-pesos-icon" id="hud-coin-img" onerror="this.style.display='none'">
+    <div class="hud-pesos-wrapper" style="margin-top:2px">
+      <img src="coin.png" alt="" class="hud-pesos-icon" onerror="this.style.display='none'">
       <span class="hud-value pesos" id="hud-pesos">0</span>
     </div>
   </div>
 </div>
 
+<!-- POWERUP BUTTONS (shown during game only, stacked vertically) -->
 <div id="powerup-container" class="hidden">
-  <button class="powerup-btn" id="btn-use-timestop" title="Use Time Stop (Spacebar)">
-    <img src="hourglass.png" alt="⏳" id="powerup-icon-img">
+  <!-- Time Stop -->
+  <button class="powerup-btn disabled" id="btn-use-timestop" title="Chronos Freeze (Space)">
+    <img class="pw-img" src="hourglass.png" alt="⏳" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pw-icon',textContent:'⏳'}))">
     <span class="powerup-count" id="powerup-hud-count">0</span>
   </button>
+  <!-- Magnet -->
+  <button class="powerup-btn disabled" id="btn-use-magnet" title="Aqua Magnet (M)">
+    <span class="pw-icon">🧲</span>
+    <span class="powerup-count" id="magnet-hud-count">0</span>
+  </button>
+  <!-- Life Refill -->
+  <button class="powerup-btn disabled" id="btn-use-liferefill" title="Life Refill">
+    <span class="pw-icon">❤️</span>
+  </button>
+</div>
+
+<!-- Magnet timer bar -->
+<div id="magnet-bar-wrap">
+  <span id="magnet-bar-label">🧲 Magnet</span>
+  <div id="magnet-bar-bg"><div id="magnet-bar-fill" style="width:100%"></div></div>
 </div>
 
 <canvas id="game"></canvas>
 <div id="combo-popup"></div>
+<div id="tier-banner"></div>
 
+<!-- MAIN MENU -->
 <div class="screen" id="screen-menu">
   <div class="menu-title">Drop<br><span class="accent">Catch</span> 💧</div>
   <div class="menu-sub">Catch falling water drops to earn <strong style="color:#ffd700">pesos</strong>. Don't miss 3!</div>
@@ -253,11 +271,11 @@ canvas { display:block; touch-action:none; }
     <span id="menu-pesos-count">0</span>
     <span class="pesos-label">Total Pesos</span>
   </div>
-  <button class="btn-primary" id="btn-play">Play</button>
+  <button class="btn-primary" id="btn-play">▶ Play</button>
   <button class="btn-shop" id="btn-open-shop" title="Open Shop">
     <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
-  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar activates Time Freeze.</div>
+  <div class="drops-tip">Swipe to move · Space = Time Freeze · M = Magnet</div>
   <div class="credit">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
@@ -266,9 +284,10 @@ canvas { display:block; touch-action:none; }
   </div>
 </div>
 
+<!-- GAME OVER -->
 <div class="screen hidden" id="screen-gameover">
   <div class="gameover-title">Game Over 💀</div>
-  <div class="gameover-sub" id="gameover-sub">You gave it your all!</div>
+  <div class="gameover-sub" id="gameover-sub"></div>
   <div class="stat-row">
     <div class="stat-box">
       <span class="stat-box-label">Score</span>
@@ -277,14 +296,18 @@ canvas { display:block; touch-action:none; }
     <div class="stat-box">
       <span class="stat-box-label">Pesos</span>
       <div class="stat-box-icon">
-        <img src="coin.png" alt="" style="width:22px;height:22px;object-fit:contain" onerror="this.style.display='none'">
+        <img src="coin.png" alt="" style="width:18px;height:18px;object-fit:contain" onerror="this.style.display='none'">
         <span class="stat-box-value gold" id="end-pesos">0</span>
       </div>
     </div>
+    <div class="stat-box">
+      <span class="stat-box-label">⏱️ Time</span>
+      <span class="stat-box-value" id="end-time" style="font-size:20px">0:00</span>
+    </div>
   </div>
-  <button class="btn-primary" id="btn-play-again">Play Again</button>
+  <button class="btn-primary" id="btn-play-again">▶ Play Again</button>
   <button class="btn-secondary" id="btn-goto-menu">Main Menu</button>
-  <div class="credit" style="margin-top:24px">
+  <div class="credit" style="margin-top:20px">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
     <span class="credit-amp">&amp;</span>
@@ -292,6 +315,7 @@ canvas { display:block; touch-action:none; }
   </div>
 </div>
 
+<!-- SHOP -->
 <div class="screen hidden" id="screen-shop">
   <div class="shop-header">
     <div class="shop-title">🛒 Shop</div>
@@ -309,9 +333,9 @@ canvas { display:block; touch-action:none; }
 
 <script>
 /* ════════════════════════════════════════════
-   SAVE SYSTEM
+   SAVE SYSTEM — CrazyGames SDK + localStorage fallback
    ════════════════════════════════════════════ */
-const SAVE_KEY = 'dropcatch_save';
+const SAVE_KEY = 'dropcatch_save_v2';
 const isCrazyGames = window.location.hostname.includes('crazygames.com')
   || typeof window.CrazyGames !== 'undefined'
   || (typeof window.SDK !== 'undefined' && window.SDK?.data);
@@ -329,100 +353,119 @@ async function cgInit() {
 
 async function saveProgress(data) {
   const payload = JSON.stringify(data);
-  if (cgSDK) {
-    try { await cgSDK.data.setItem(SAVE_KEY, payload); return; } catch(e) {}
-  }
+  if (cgSDK) { try { await cgSDK.data.setItem(SAVE_KEY, payload); return; } catch(e) {} }
   try { localStorage.setItem(SAVE_KEY, payload); } catch(e) {}
 }
 
 async function loadProgress() {
-  if (cgSDK) {
-    try {
-      const v = await cgSDK.data.getItem(SAVE_KEY);
-      if (v) return JSON.parse(v);
-    } catch(e) {}
-  }
-  try {
-    const v = localStorage.getItem(SAVE_KEY);
-    if (v) return JSON.parse(v);
-  } catch(e) {}
+  if (cgSDK) { try { const v = await cgSDK.data.getItem(SAVE_KEY); if (v) return JSON.parse(v); } catch(e) {} }
+  try { const v = localStorage.getItem(SAVE_KEY); if (v) return JSON.parse(v); } catch(e) {}
   return null;
 }
 
 /* ════════════════════════════════════════════
-   AUDIO SYSTEM (Zero-Delay Processing)
+   AUDIO
    ════════════════════════════════════════════ */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let audioBuffer = null;
 
 async function preloadAudio() {
   try {
-    const response = await fetch('timestop.mp3');
-    const arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  } catch (e) {
-    console.log("Audio fallback mode operational.");
-  }
+    const r = await fetch('timestop.mp3');
+    const ab = await r.arrayBuffer();
+    audioBuffer = await audioCtx.decodeAudioData(ab);
+  } catch(e) {}
 }
 
-function playTimeStopAudio() {
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  if (audioBuffer) {
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioCtx.destination);
-    source.start(0);
-    return;
-  }
+function playAudioSynth(freq1, freq2, dur) {
   try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (audioBuffer) {
+      const src = audioCtx.createBufferSource();
+      src.buffer = audioBuffer; src.connect(audioCtx.destination); src.start(0); return;
+    }
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(146.83, audioCtx.currentTime + 0.35);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e){}
+    osc.frequency.setValueAtTime(freq1, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq2, audioCtx.currentTime + dur);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
 }
 
 /* ════════════════════════════════════════════
-   GAME STATE & VOLATILE TRACKERS
+   PERSIST STATE
    ════════════════════════════════════════════ */
-let persist = { 
-  totalPesos: 0, 
+let persist = {
+  totalPesos: 0,
   purchases: [],
   timestopCount: 0,
-  timestopLevel: 0
+  timestopLevel: 0,
+  magnetCount: 0,
+  hasLifeRefill: false,
 };
 
+/* ════════════════════════════════════════════
+   DROP TIERS
+   tier 0 = water (blue)     — always, 1 peso
+   tier 1 = silver           — 50p + 2min, 3 pesos
+   tier 2 = crystal          — 100p + 4m40s, 6 pesos
+   tier 3 = rainbow          — 1000p + 7m30s, 15 pesos
+   golden = rare bonus       — once per 8min avg, 3x current tier reward
+   ════════════════════════════════════════════ */
+const TIER_CONFIG = [
+  { name:'Water',   pesos:1,  color0:'rgba(180,230,255,0.95)', color1:'rgba(79,195,247,0.92)', color2:'rgba(2,136,209,0.88)',     shine:'rgba(255,255,255,0.65)' },
+  { name:'Silver',  pesos:3,  color0:'rgba(220,225,235,0.95)', color1:'rgba(170,185,205,0.92)', color2:'rgba(100,115,135,0.88)',  shine:'rgba(255,255,255,0.8)' },
+  { name:'Crystal', pesos:6,  color0:'rgba(200,255,240,0.95)', color1:'rgba(130,255,220,0.92)', color2:'rgba(30,200,180,0.88)',  shine:'rgba(255,255,255,0.9)' },
+  { name:'Rainbow', pesos:15, color0:null, color1:null, color2:null, shine:'rgba(255,255,255,0.9)' },
+];
+
+const GOLDEN_MULTIPLIER = 3;
+
+/* ════════════════════════════════════════════
+   GAME STATE
+   ════════════════════════════════════════════ */
 let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
 let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
+let playTimeMs = 0; // milliseconds played this session
 
+// Timestop
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
 let postTimeStopSlowTimer = 0;
+const POST_SLOW_SCALE = 0.22; // drop speed during slow-down phase
+const POST_SLOW_CATCHUP_RATE = 0.08; // per drop per frame: ramp back up gently
+
+// Magnet
+let magnetActive = false;
+let magnetTimeRemaining = 0;
+const MAGNET_DURATION = 10000; // 10 seconds
+const MAGNET_PULL_RADIUS = 999; // pulls all drops on screen
+const MAGNET_PULL_FORCE = 0.055; // fraction of distance per frame
+
+// Drop tier tracking
+let currentMaxTier = 0; // highest tier that can currently spawn
+let tierUnlockShown = 0; // avoid showing same tier banner twice
+let goldenTimer = 0; // ms since last golden drop
+const GOLDEN_INTERVAL_MS = 8 * 60 * 1000; // 8 minutes on average
+const GOLDEN_VARIANCE = 0.4; // ± 40%
+let nextGoldenAt = _randomGoldenInterval();
+
+function _randomGoldenInterval() {
+  return GOLDEN_INTERVAL_MS * (1 - GOLDEN_VARIANCE + Math.random() * GOLDEN_VARIANCE * 2);
+}
 
 /* ════════════════════════════════════════════
-   CANVAS & OBJECT DEFS (DYNAMIC FROM CONFIG)
+   CANVAS
    ════════════════════════════════════════════ */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
-
-// Read Initial Bucket structural elements from external configuration profiles
-let bucket = { 
-  x: 0, 
-  y: 0, 
-  w: 0, 
-  h: GAME_CONFIG.bucket.height, 
-  targetX: 0 
-};
+let bucket = { x:0, y:0, w:0, h: GAME_CONFIG.bucket.height, targetX:0 };
 let drops = [], particles = [];
 
 const textures = {};
@@ -436,258 +479,373 @@ function loadImg(key, src) {
 }
 
 /* ════════════════════════════════════════════
-   RESIZE & HUD INTERACTION RENDERERS
+   RESIZE
    ════════════════════════════════════════════ */
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  
-  // Apply external bucket scalar configuration properties
   bucket.w = W * GAME_CONFIG.bucket.widthRatio;
   bucket.h = GAME_CONFIG.bucket.height;
   bucket.y = H - GAME_CONFIG.bucket.bottomOffset;
-  
-  if (!gameRunning) {
-    bucket.x = W / 2 - bucket.w / 2;
-    bucket.targetX = bucket.x;
-  }
+  if (!gameRunning) { bucket.x = W/2 - bucket.w/2; bucket.targetX = bucket.x; }
 }
 window.addEventListener('resize', resize);
 
-const hudScore = document.getElementById('hud-score');
-const hudPesos = document.getElementById('hud-pesos');
-const hudLivesCount = document.getElementById('hud-lives-count');
+/* ════════════════════════════════════════════
+   HUD
+   ════════════════════════════════════════════ */
+const hudScore     = document.getElementById('hud-score');
+const hudPesos     = document.getElementById('hud-pesos');
+const hudLivesCount= document.getElementById('hud-lives-count');
+const hudTimer     = document.getElementById('hud-timer');
 const powerupHUDCount = document.getElementById('powerup-hud-count');
-const usePowerupBtn = document.getElementById('btn-use-timestop');
+const magnetHUDCount  = document.getElementById('magnet-hud-count');
+const btnTimeStop  = document.getElementById('btn-use-timestop');
+const btnMagnet    = document.getElementById('btn-use-magnet');
+const btnLifeRefill= document.getElementById('btn-use-liferefill');
+const powerupContainer = document.getElementById('powerup-container');
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
 
 function updateHUD() {
   hudScore.textContent = score;
   hudPesos.textContent = sessionPesos;
   hudLivesCount.textContent = lives;
+  hudTimer.textContent = fmtTime(playTimeMs);
+
+  // Timestop button
   powerupHUDCount.textContent = persist.timestopCount;
-  if(persist.timestopCount <= 0) {
-    usePowerupBtn.classList.add('disabled');
+  btnTimeStop.classList.toggle('disabled', persist.timestopCount <= 0 || timeStopActive || magnetActive);
+
+  // Magnet button
+  magnetHUDCount.textContent = persist.magnetCount;
+  btnMagnet.classList.toggle('disabled', persist.magnetCount <= 0 || magnetActive || timeStopActive);
+
+  // Life refill button — only show if owned, hide if not
+  const hasRefill = persist.hasLifeRefill;
+  btnLifeRefill.style.display = hasRefill ? '' : 'none';
+  btnLifeRefill.classList.toggle('disabled', !hasRefill || lives >= MAX_LIVES);
+
+  // Magnet progress bar
+  const barWrap = document.getElementById('magnet-bar-wrap');
+  if (magnetActive) {
+    barWrap.style.display = 'flex';
+    document.getElementById('magnet-bar-fill').style.width = (magnetTimeRemaining / MAGNET_DURATION * 100) + '%';
   } else {
-    usePowerupBtn.classList.remove('disabled');
+    barWrap.style.display = 'none';
   }
 }
 
 /* ════════════════════════════════════════════
-   POWERUP CHANNELS
+   TIER UNLOCK CHECK
    ════════════════════════════════════════════ */
-function triggerTimeStop() {
-  if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
-  persist.timestopCount--;
-  timeStopActive = true;
-  postTimeStopSlowTimer = 0; 
-  
-  timeStopTimeRemaining = GAME_CONFIG.powerups.timeStopFreezeDuration;
-  
-  playTimeStopAudio();
-  usePowerupBtn.classList.add('active-pulse');
-  updateHUD();
-  saveProgress(persist);
+function checkTierUnlocks() {
+  // silver: 50 pesos total + 2min
+  if (currentMaxTier < 1 && persist.totalPesos + sessionPesos >= 50 && playTimeMs >= 120000) {
+    currentMaxTier = 1; showTierBanner('💿 Silver drops unlocked!');
+  }
+  // crystal: 100 pesos total + 4m40s
+  if (currentMaxTier < 2 && persist.totalPesos + sessionPesos >= 100 && playTimeMs >= 280000) {
+    currentMaxTier = 2; showTierBanner('💎 Crystal drops unlocked!');
+  }
+  // rainbow: 1000 pesos total + 7m30s
+  if (currentMaxTier < 3 && persist.totalPesos + sessionPesos >= 1000 && playTimeMs >= 450000) {
+    currentMaxTier = 3; showTierBanner('🌈 Rainbow drops unlocked!');
+  }
+}
+
+const tierBannerEl = document.getElementById('tier-banner');
+let tierBannerTimeout = null;
+function showTierBanner(msg) {
+  tierBannerEl.textContent = msg;
+  tierBannerEl.style.opacity = '1';
+  clearTimeout(tierBannerTimeout);
+  tierBannerTimeout = setTimeout(() => { tierBannerEl.style.opacity = '0'; }, 3000);
 }
 
 /* ════════════════════════════════════════════
-   DYNAMIC DROPS INJECTION
+   SPAWN DROP
    ════════════════════════════════════════════ */
+function pickDropTier() {
+  // golden: rare random
+  goldenTimer += dropInterval; // approximate — we check per spawn
+  if (goldenTimer >= nextGoldenAt) {
+    goldenTimer = 0; nextGoldenAt = _randomGoldenInterval();
+    return 'golden';
+  }
+  if (currentMaxTier === 0) return 0;
+  // Weight: higher tiers are rarer
+  const weights = [60, 25, 12, 8]; // water, silver, crystal, rainbow
+  const pool = weights.slice(0, currentMaxTier + 1);
+  const total = pool.reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) { r -= pool[i]; if (r <= 0) return i; }
+  return 0;
+}
+
 function spawnDrop() {
   const rMin = GAME_CONFIG.drops.radiusMin;
   const rMax = GAME_CONFIG.drops.radiusMax;
   const scatter = GAME_CONFIG.drops.scatterVariance;
-  
+  const tier = pickDropTier();
   drops.push({
     x: Math.random() * (W - 32) + 16,
     y: -30,
     r: rMin + Math.random() * (rMax - rMin),
     speed: dropSpeed + Math.random() * 1.5,
     wobble: Math.random() * Math.PI * 2,
-    scatterOffset: (Math.random() - 0.5) * scatter
+    scatterOffset: (Math.random() - 0.5) * scatter,
+    tier, // 0,1,2,3 or 'golden'
+    rainbowHue: Math.random() * 360, // for rainbow animation
+    frozenAt: null, // y position when frozen — prevents pileup on unfreeze
+    postSlowHandled: false, // spread-out flag after timestop
   });
 }
 
+/* ════════════════════════════════════════════
+   DRAW DROP
+   ════════════════════════════════════════════ */
 function drawDrop(d) {
   ctx.save();
-  const {x, y, r} = d;
-  
+  const {x, y, r, tier} = d;
   ctx.beginPath();
   ctx.moveTo(x, y - r * 1.6);
-  ctx.bezierCurveTo(x + r * 0.6, y - r * 0.6, x + r, y + r * 0.4, x, y + r);
-  ctx.bezierCurveTo(x - r, y + r * 0.4, x - r * 0.6, y - r * 0.6, x, y - r * 1.6);
+  ctx.bezierCurveTo(x+r*0.6, y-r*0.6, x+r, y+r*0.4, x, y+r);
+  ctx.bezierCurveTo(x-r, y+r*0.4, x-r*0.6, y-r*0.6, x, y-r*1.6);
   ctx.closePath();
-  
-  const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+
+  const g = ctx.createLinearGradient(x-r, y-r, x+r, y+r);
+
   if (timeStopActive) {
-    g.addColorStop(0, '#93c5fd');
-    g.addColorStop(1, '#1e3a8a');
+    g.addColorStop(0, '#93c5fd'); g.addColorStop(1, '#1e3a8a');
+  } else if (tier === 'golden') {
+    g.addColorStop(0, 'rgba(255,240,100,0.98)');
+    g.addColorStop(0.5, 'rgba(255,200,0,0.95)');
+    g.addColorStop(1, 'rgba(200,140,0,0.90)');
+  } else if (tier === 3) {
+    // Rainbow: hue-rotate over time
+    const hue = (d.rainbowHue + Date.now() * 0.1) % 360;
+    g.addColorStop(0, `hsla(${hue},100%,80%,0.97)`);
+    g.addColorStop(0.5, `hsla(${(hue+120)%360},100%,60%,0.94)`);
+    g.addColorStop(1, `hsla(${(hue+240)%360},100%,45%,0.90)`);
   } else {
-    g.addColorStop(0, 'rgba(180,230,255,0.95)');
-    g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
-    g.addColorStop(1, 'rgba(2,136,209,0.88)');
+    const tc = TIER_CONFIG[tier];
+    g.addColorStop(0, tc.color0);
+    g.addColorStop(0.45, tc.color1);
+    g.addColorStop(1, tc.color2);
   }
-  
-  ctx.fillStyle = g;
-  ctx.fill();
-  
+
+  ctx.fillStyle = g; ctx.fill();
+
+  // shine
   ctx.beginPath();
-  ctx.ellipse(x - r * 0.28, y - r * 0.5, r * 0.22, r * 0.36, -0.4, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.fill();
+  ctx.ellipse(x-r*0.28, y-r*0.5, r*0.22, r*0.36, -0.4, 0, Math.PI*2);
+  const tc = (tier === 'golden' || tier === 3) ? 'rgba(255,255,255,0.85)' : (TIER_CONFIG[tier]||TIER_CONFIG[0]).shine;
+  ctx.fillStyle = tc; ctx.fill();
+
+  // golden sparkle ring
+  if (tier === 'golden') {
+    ctx.beginPath();
+    ctx.arc(x, y, r + 3 + Math.sin(Date.now()/200)*2, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,220,0,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
   ctx.restore();
 }
 
 /* ════════════════════════════════════════════
-   BUCKET & SCALED FLOOR SHADOW RENDERERS
+   DRAW BUCKET
    ════════════════════════════════════════════ */
 function drawBucket() {
-  const {x: bx, y: by, w: bw, h: bh} = bucket;
+  const {x:bx, y:by, w:bw, h:bh} = bucket;
   ctx.save();
-
-  // DYNAMIC: Base floor shadow properties scaling proportionally alongside config inputs
   ctx.beginPath();
-  ctx.ellipse(bx + bw / 2, by + bh + 4, bw * 0.46, bh * 0.062, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fill();
+  ctx.ellipse(bx+bw/2, by+bh+4, bw*0.46, bh*0.06, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
 
   if (textures.bucket) {
     ctx.drawImage(textures.bucket, bx, by, bw, bh);
   } else {
     ctx.beginPath();
-    ctx.moveTo(bx - 4, by);
-    ctx.lineTo(bx + bw + 4, by);
-    ctx.lineTo(bx + bw - 6, by + bh);
-    ctx.lineTo(bx + 6, by + bh);
-    ctx.closePath();
-    const bg = ctx.createLinearGradient(bx, by, bx + bw, by);
-    bg.addColorStop(0, '#3b82f6'); 
-    bg.addColorStop(0.5, '#60a5fa'); 
-    bg.addColorStop(1, '#1d4ed8');
+    ctx.moveTo(bx-4,by); ctx.lineTo(bx+bw+4,by);
+    ctx.lineTo(bx+bw-6,by+bh); ctx.lineTo(bx+6,by+bh); ctx.closePath();
+    const bg = ctx.createLinearGradient(bx,by,bx+bw,by);
+    bg.addColorStop(0,'#3b82f6'); bg.addColorStop(0.5,'#60a5fa'); bg.addColorStop(1,'#1d4ed8');
     ctx.fillStyle = bg; ctx.fill();
+  }
+
+  // Magnet aura ring
+  if (magnetActive) {
+    ctx.beginPath();
+    ctx.arc(bx+bw/2, by+bh/2, bw*0.65, 0, Math.PI*2);
+    const pct = magnetTimeRemaining / MAGNET_DURATION;
+    ctx.strokeStyle = `rgba(167,139,250,${0.3 + 0.3 * Math.sin(Date.now()/150)})`;
+    ctx.lineWidth = 2; ctx.stroke();
   }
   ctx.restore();
 }
 
 /* ════════════════════════════════════════════
-   DYNAMIC FLUID PARTICLE INJECTORS
+   PARTICLES
    ════════════════════════════════════════════ */
-function spawnCatchParticles(x, y) {
+function spawnCatchParticles(x, y, tier) {
   const qty = GAME_CONFIG.particles.catchCount;
+  let col = GAME_CONFIG.particles.catchColor;
+  if (tier === 'golden') col = 'rgba(255,215,0,';
+  else if (tier === 3) col = `hsla(${Math.random()*360},100%,70%,`;
+  else if (tier === 2) col = 'rgba(130,255,220,';
+  else if (tier === 1) col = 'rgba(200,215,230,';
   for (let i = 0; i < qty; i++) {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.5;
-    const velocity = 0.5 + Math.random() * 1.5;
-    particles.push({
-      x, y, 
-      vx: Math.cos(angle) * velocity, 
-      vy: Math.sin(angle) * velocity,
-      life: 0.8, 
-      decay: 0.04, 
-      r: 1.5 + Math.random() * 2.0, 
-      type: 'catch'
-    });
+    const a = -Math.PI/2 + (Math.random()-0.5)*0.6;
+    const v = 0.6 + Math.random() * 2.0;
+    particles.push({ x, y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:0.85, decay:0.035, r:1.5+Math.random()*2.5, col });
   }
 }
 
-function spawnEdgeExplosionParticles(x, y) {
+function spawnEdgeParticles(x, y, tier) {
   const qty = GAME_CONFIG.particles.edgeExplosionCount;
+  let col = GAME_CONFIG.particles.catchColor;
+  if (tier === 'golden') col = 'rgba(255,215,0,';
   for (let i = 0; i < qty; i++) {
-    const angle = (Math.random() * -Math.PI); 
-    const velocity = 2.5 + Math.random() * 4.5;
-    particles.push({
-      x, y, 
-      vx: Math.cos(angle) * velocity, 
-      vy: Math.sin(angle) * velocity - 1,
-      life: 1.0, 
-      decay: 0.03 + Math.random() * 0.02, 
-      r: 2 + Math.random() * 3, 
-      type: 'edge'
-    });
+    const a = Math.random() * -Math.PI;
+    const v = 2.5 + Math.random() * 4.5;
+    particles.push({ x, y, vx:Math.cos(a)*v, vy:Math.sin(a)*v-1, life:1, decay:0.03+Math.random()*0.02, r:2+Math.random()*3, col });
   }
 }
 
 function spawnMissParticles(x) {
   const qty = GAME_CONFIG.particles.missCount;
-  for (let i = 0; i < qty; i++) {
-    particles.push({
-      x, y: H - 20, 
-      vx: (Math.random() - 0.5) * 4, 
-      vy: -(Math.random() * 3 + 1),
-      life: 1, 
-      decay: 0.05 + Math.random() * 0.04, 
-      r: 2 + Math.random() * 3, 
-      type: 'miss'
-    });
-  }
+  for (let i = 0; i < qty; i++)
+    particles.push({ x, y:H-20, vx:(Math.random()-0.5)*4, vy:-(Math.random()*3+1), life:1, decay:0.05+Math.random()*0.04, r:2+Math.random()*3, col:GAME_CONFIG.particles.missColor });
 }
 
 function drawParticles() {
   for (const p of particles) {
-    ctx.save(); 
-    ctx.globalAlpha = Math.max(0, p.life);
-    
-    // Assign structural color properties from external config file declarations
-    if (p.type === 'catch' || p.type === 'edge') {
-      ctx.fillStyle = GAME_CONFIG.particles.catchColor + p.life + ")";
-    } else {
-      ctx.fillStyle = GAME_CONFIG.particles.missColor + p.life + ")";
-    }
-    
-    ctx.beginPath(); 
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); 
-    ctx.fill(); 
-    ctx.restore();
+    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.col + p.life + ')';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); ctx.restore();
   }
 }
 
 /* ════════════════════════════════════════════
-   BACKGROUND SCENERY
+   BACKGROUND
    ════════════════════════════════════════════ */
 function drawBg() {
-  ctx.fillStyle = '#0a1628';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#0a1628'; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle = 'rgba(100,180,255,0.04)'; ctx.lineWidth = 1;
-  for (let y = 80; y < H; y += 64) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
+  for (let y=80; y<H; y+=64) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 }
 
+/* ════════════════════════════════════════════
+   COMBO
+   ════════════════════════════════════════════ */
 const comboPopup = document.getElementById('combo-popup');
 let comboTimer = null;
 function showCombo(n) {
   if (n < 3) return;
-  const m = n >= 20 ? 'UNSTOPPABLE 🔥🔥' : n >= 10 ? '10x Streak! 🔥' : n >= 5 ? '5x Combo!' : '3x Combo!';
+  const m = n>=20?'UNSTOPPABLE 🔥🔥':n>=10?'10x Streak! 🔥':n>=5?'5x Combo!':'3x Combo!';
   comboPopup.textContent = m;
   comboPopup.style.opacity = '1';
   clearTimeout(comboTimer);
-  comboTimer = setTimeout(() => { comboPopup.style.opacity = '0'; }, 1200);
+  comboTimer = setTimeout(()=>{ comboPopup.style.opacity='0'; }, 1200);
 }
 
 /* ════════════════════════════════════════════
-   ENGINE CORE LOOPS & COLLISION EQUATIONS
+   POWERUPS
+   ════════════════════════════════════════════ */
+function triggerTimeStop() {
+  if (!gameRunning || timeStopActive || magnetActive || persist.timestopCount <= 0) return;
+  persist.timestopCount--;
+  timeStopActive = true;
+  postTimeStopSlowTimer = 0;
+  timeStopTimeRemaining = GAME_CONFIG.powerups.timeStopFreezeDuration;
+  // Mark every drop's frozen position so they don't pile up
+  for (const d of drops) { d.frozenAt = d.y; d.postSlowHandled = false; }
+  playAudioSynth(587, 146, 0.35);
+  btnTimeStop.classList.add('active-pulse');
+  updateHUD();
+  saveProgress(persist);
+}
+
+function triggerMagnet() {
+  if (!gameRunning || magnetActive || timeStopActive || persist.magnetCount <= 0) return;
+  // rainbow rule: magnet only grabs up to 7 rainbow drops and overrides any active timestop UI
+  persist.magnetCount--;
+  magnetActive = true;
+  magnetTimeRemaining = MAGNET_DURATION;
+  playAudioSynth(440, 880, 0.2);
+  btnMagnet.classList.add('magnet-active');
+  updateHUD();
+  saveProgress(persist);
+}
+
+function triggerLifeRefill() {
+  if (!gameRunning || !persist.hasLifeRefill || lives >= MAX_LIVES) return;
+  lives = MAX_LIVES;
+  persist.hasLifeRefill = false;
+  playAudioSynth(523, 1046, 0.3);
+  updateHUD();
+  saveProgress(persist);
+}
+
+/* ════════════════════════════════════════════
+   PESOS FOR DROP
+   ════════════════════════════════════════════ */
+function pesosForDrop(tier) {
+  if (tier === 'golden') {
+    const baseTier = TIER_CONFIG[currentMaxTier] || TIER_CONFIG[0];
+    return baseTier.pesos * GOLDEN_MULTIPLIER;
+  }
+  return TIER_CONFIG[tier].pesos;
+}
+
+/* ════════════════════════════════════════════
+   UPDATE  (THE BIG ONE)
    ════════════════════════════════════════════ */
 function update(dt) {
   if (!gameRunning) return;
 
+  // Clamp dt hard — this is the main freeze fix.
+  // If the tab was backgrounded or the device choked, dt could be 500ms+
+  // which would cause drops to teleport. Cap at 32ms (≈30fps minimum).
+  dt = Math.min(dt, 32);
+
+  playTimeMs += dt;
+  checkTierUnlocks();
+
+  // ── Timestop tick ──
   if (timeStopActive) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
-      usePowerupBtn.classList.remove('active-pulse');
-      
-      let baseSlowWindow = 5000;
-      if (persist.timestopLevel > 0) {
-        baseSlowWindow = GAME_CONFIG.upgradeTiers[persist.timestopLevel - 1].slowDuration;
-      }
-      postTimeStopSlowTimer = baseSlowWindow; 
+      btnTimeStop.classList.remove('active-pulse');
+      let slowWindow = 5000;
+      if (persist.timestopLevel > 0) slowWindow = GAME_CONFIG.upgradeTiers[persist.timestopLevel-1].slowDuration;
+      postTimeStopSlowTimer = slowWindow;
+      // Spread drops out vertically so they don't all hit at once
+      _spreadDropsAfterFreeze();
     }
   } else if (postTimeStopSlowTimer > 0) {
     postTimeStopSlowTimer -= dt;
   }
 
+  // ── Magnet tick ──
+  if (magnetActive) {
+    magnetTimeRemaining -= dt;
+    if (magnetTimeRemaining <= 0) {
+      magnetActive = false;
+      btnMagnet.classList.remove('magnet-active');
+      updateHUD();
+    }
+  }
+
+  // ── Difficulty ramp ──
   dropTimer += dt; speedTick += dt;
   if (speedTick > GAME_CONFIG.drops.difficultyTimeStep) {
     speedTick = 0;
-    dropSpeed = Math.min(dropSpeed + GAME_CONFIG.drops.difficultyDifficultyStep, GAME_CONFIG.drops.maxSpeed);
+    dropSpeed = Math.min(dropSpeed + GAME_CONFIG.drops.speedDifficultyStep, GAME_CONFIG.drops.maxSpeed);
     dropInterval = Math.max(dropInterval - GAME_CONFIG.drops.intervalDifficultyStep, GAME_CONFIG.drops.minInterval);
   }
   if (dropTimer > dropInterval) {
@@ -695,57 +853,66 @@ function update(dt) {
     if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
   }
 
-  // Handle slide translations via config movement constants
+  // ── Bucket movement ──
   bucket.x += (bucket.targetX - bucket.x) * GAME_CONFIG.bucket.movementLerp;
 
-  for (let i = drops.length - 1; i >= 0; i--) {
+  // ── Drop updates ──
+  let rainbowCaughtByMagnet = 0;
+  for (let i = drops.length-1; i >= 0; i--) {
     const d = drops[i];
-    
-    let currentDropSpeed = d.speed;
-    if (timeStopActive) {
-      currentDropSpeed = 0.0; 
-    } else if (postTimeStopSlowTimer > 0) {
-      currentDropSpeed = d.speed * 0.20; 
-    } else {
-      currentDropSpeed += d.scatterOffset; // Apply layout scatter offset profiles to prevent stack clumping
+
+    // Magnet pull
+    if (magnetActive) {
+      const rainbowCap = (d.tier === 3) ? rainbowCaughtByMagnet < 7 : true;
+      if (rainbowCap) {
+        const bCx = bucket.x + bucket.w / 2;
+        const bCy = bucket.y + bucket.h / 2;
+        const dx = bCx - d.x, dy = bCy - d.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        d.x += dx / dist * dist * MAGNET_PULL_FORCE;
+        d.y += dy / dist * dist * MAGNET_PULL_FORCE;
+      }
     }
-    
-    d.y += currentDropSpeed * (dt / 16);
-    
-    // READ CRITICAL DETAILED HITBOX SEGMENTS FROM DYNAMIC PROPERTIES CONFIG
+
+    // Speed calculation — NO scatter offset during post-slow ramp (prevents pileup)
+    let spd;
+    if (timeStopActive) {
+      spd = 0;
+    } else if (postTimeStopSlowTimer > 0) {
+      // Ramp from POST_SLOW_SCALE back to full speed gradually
+      const pct = 1 - (postTimeStopSlowTimer / 5000);
+      const rampFactor = POST_SLOW_SCALE + (1 - POST_SLOW_SCALE) * Math.min(pct, 1);
+      spd = d.speed * rampFactor;
+    } else {
+      spd = d.speed + d.scatterOffset;
+    }
+
+    d.y += spd * (dt / 16);
+
+    // ── Collision ──
     const bL = bucket.x;
     const bR = bucket.x + bucket.w;
     const bT = bucket.y;
-    
+
     if (d.y + d.r >= bT && d.y - d.r <= bT + bucket.h) {
       if (d.x >= bL && d.x <= bR) {
-        
-        // Compute precise pixel ranges for corner edge zones
-        const edgeWidthPixels = bucket.w * GAME_CONFIG.physics.edgeWidthPercent;
-        const isLeftCorner = (d.x >= bL && d.x <= bL + edgeWidthPixels);
-        const isRightCorner = (d.x >= bR - edgeWidthPixels && d.x <= bR);
-        
-        if ((isLeftCorner || isRightCorner) && d.y <= bT + GAME_CONFIG.physics.edgeHeightThreshold) {
-          // Trigger corner break split explosion paths
-          spawnEdgeExplosionParticles(d.x, bT);
-          score++; sessionPesos += 5; combo++;
-          updateHUD(); showCombo(combo);
-          drops.splice(i, 1); continue;
-        }
-        
-        // Internal basin catch checks
-        const topLimit = GAME_CONFIG.physics.catchTopThreshold;
-        const bottomLimit = GAME_CONFIG.physics.catchBottomThreshold;
-        if (d.y >= bT + topLimit && d.y - d.r < bT + bottomLimit) {
-          spawnCatchParticles(d.x, d.y);
-          score++; sessionPesos += 5; combo++;
+        const edgePx = bucket.w * GAME_CONFIG.physics.edgeWidthPercent;
+        const isCorner = (d.x <= bL + edgePx || d.x >= bR - edgePx) && d.y <= bT + GAME_CONFIG.physics.edgeHeightThreshold;
+
+        if (isCorner) {
+          spawnEdgeParticles(d.x, bT, d.tier);
+        } else {
+          spawnCatchParticles(d.x, d.y, d.tier);
           waterLevel = Math.min(waterLevel + 0.06, 0.7);
-          updateHUD(); showCombo(combo);
-          drops.splice(i, 1); continue;
         }
+        const earned = pesosForDrop(d.tier);
+        score++; sessionPesos += earned; combo++;
+        if (d.tier === 3 && magnetActive) rainbowCaughtByMagnet++;
+        updateHUD(); showCombo(combo);
+        drops.splice(i, 1); continue;
       }
     }
-    
+
     if (d.y > H + 20) {
       spawnMissParticles(d.x);
       lives--; combo = 0; updateHUD();
@@ -753,47 +920,72 @@ function update(dt) {
       if (lives <= 0) endGame();
     }
   }
-  
+
   waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
+
+  // ── Particles ──
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  updateHUD();
+}
+
+// Spread drops evenly after time stop so they don't all arrive at same frame
+function _spreadDropsAfterFreeze() {
+  // Sort by current y descending (highest on screen = lowest y = arrives last)
+  const sorted = [...drops].sort((a,b) => a.y - b.y);
+  // Give each drop a staggered y buffer so they don't all land simultaneously
+  const GAP = 80; // pixels apart
+  for (let i = 0; i < sorted.length; i++) {
+    const d = sorted[i];
+    const targetY = -30 - (sorted.length - 1 - i) * GAP;
+    if (d.y < bucket.y - 60) { // only touch drops that are still high up
+      d.y = Math.min(d.y, targetY + d.y * 0.5); // blend current with spread position
+    }
+    // Also randomize speed slightly to prevent synchronized arrival
+    d.speed = GAME_CONFIG.drops.baseSpeed + Math.random() * 2.5;
+    d.scatterOffset = (Math.random() - 0.5) * GAME_CONFIG.drops.scatterVariance;
   }
 }
 
+/* ════════════════════════════════════════════
+   DRAW
+   ════════════════════════════════════════════ */
 function draw() {
   drawBg();
   for (const d of drops) drawDrop(d);
   if (timeStopActive) {
-    ctx.fillStyle = "rgba(147, 197, 253, 0.12)";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(147,197,253,0.10)';
+    ctx.fillRect(0,0,W,H);
   }
   drawBucket();
   drawParticles();
 }
 
 function loop(ts) {
-  const dt = Math.min(ts - lastTime, 50); lastTime = ts;
-  update(dt); draw();
+  const dt = lastTime === 0 ? 16 : ts - lastTime;
+  lastTime = ts;
+  update(dt);
+  draw();
   if (gameRunning) animFrame = requestAnimationFrame(loop);
 }
 
 /* ════════════════════════════════════════════
-   SCREENS NAVIGATION HANDLERS
+   SCREENS
    ════════════════════════════════════════════ */
 const screens = {
-  menu: document.getElementById('screen-menu'),
+  menu:     document.getElementById('screen-menu'),
   gameover: document.getElementById('screen-gameover'),
-  shop: document.getElementById('screen-shop'),
+  shop:     document.getElementById('screen-shop'),
 };
 
 function showScreen(name) {
-  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
-  if (name === null) {
-    document.getElementById('powerup-container').classList.remove('hidden');
-  } else {
-    document.getElementById('powerup-container').classList.add('hidden');
-  }
+  Object.entries(screens).forEach(([k,el]) => el.classList.toggle('hidden', k !== name));
+  // powerups visible only during game
+  powerupContainer.classList.toggle('hidden', name !== null);
 }
 
 function showMainMenu() {
@@ -804,21 +996,22 @@ function showMainMenu() {
 function startGame() {
   drops = []; particles = [];
   score = 0; sessionPesos = 0; combo = 0;
-  dropInterval = GAME_CONFIG.drops.baseInterval; 
-  dropTimer = 0; 
-  dropSpeed = GAME_CONFIG.drops.baseSpeed; 
-  speedTick = 0; waterLevel = 0;
+  dropInterval = GAME_CONFIG.drops.baseInterval;
+  dropTimer = 0; dropSpeed = GAME_CONFIG.drops.baseSpeed;
+  speedTick = 0; waterLevel = 0; playTimeMs = 0;
   postTimeStopSlowTimer = 0;
+  timeStopActive = false; timeStopTimeRemaining = 0;
+  magnetActive = false; magnetTimeRemaining = 0;
+  currentMaxTier = 0; tierUnlockShown = 0;
+  goldenTimer = 0; nextGoldenAt = _randomGoldenInterval();
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
   lives = MAX_LIVES;
-  timeStopActive = false;
-  timeStopTimeRemaining = 0;
-  usePowerupBtn.classList.remove('active-pulse');
-  
-  bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
-  updateHUD(); 
+  btnTimeStop.classList.remove('active-pulse');
+  btnMagnet.classList.remove('magnet-active');
+  bucket.x = W/2 - bucket.w/2; bucket.targetX = bucket.x;
+  updateHUD();
   showScreen(null);
-  gameRunning = true; lastTime = performance.now();
+  gameRunning = true; lastTime = 0;
   animFrame = requestAnimationFrame(loop);
 }
 
@@ -828,181 +1021,187 @@ async function endGame() {
   await saveProgress(persist);
   document.getElementById('end-score').textContent = score;
   document.getElementById('end-pesos').textContent = sessionPesos;
+  document.getElementById('end-time').textContent = fmtTime(playTimeMs);
   document.getElementById('gameover-sub').innerHTML =
     `You caught <strong style="color:#4fc3f7">${score} drops</strong> and earned <strong style="color:#ffd700">${sessionPesos} pesos</strong>!`;
   showScreen('gameover');
 }
 
 /* ════════════════════════════════════════════
-   SHOP SUBSYSTEMS (DRIVEN BY CONFIG PROPERTIES)
+   SHOP
    ════════════════════════════════════════════ */
+function mkShopItem(iconHTML, badge, name, desc, actionHTML) {
+  const el = document.createElement('div');
+  el.className = 'shop-item';
+  el.innerHTML = `
+    <div class="shop-item-icon">${iconHTML}</div>
+    <div class="shop-item-info">
+      <span class="upgrade-badge">${badge}</span>
+      <div class="shop-item-name">${name}</div>
+      <div class="shop-item-desc">${desc}</div>
+    </div>
+    <div class="shop-item-action">${actionHTML}</div>`;
+  return el;
+}
+
+function buyBtn(id, cost, canAfford) {
+  if (!canAfford) return `<button class="btn-buy cant-afford" disabled><img src="coin.png" onerror="this.style.display='none'"> ${cost}</button>`;
+  return `<button class="btn-buy" id="${id}"><img src="coin.png" onerror="this.style.display='none'"> ${cost}</button>`;
+}
+
 function renderShop() {
   document.getElementById('shop-pesos-count').textContent = persist.totalPesos;
-  const container = document.getElementById('shop-items');
-  container.innerHTML = '';
+  const c = document.getElementById('shop-items');
+  c.innerHTML = '';
 
-  // Frame 1: Upgraded Bucket Item Node
-  const bucketOwned = persist.purchases.includes('bucket_upgrade');
+  const P = persist.totalPesos;
+
+  // 1. Hydra Bucket
+  const bOwned = persist.purchases.includes('bucket_upgrade');
   const bCost = GAME_CONFIG.powerups.reinforcedRimPrice;
-  const canAffordBucket = persist.totalPesos >= bCost;
-  const elBucket = document.createElement('div');
-  elBucket.className = 'shop-item' + (bucketOwned ? ' owned' : '');
-  elBucket.innerHTML = `
-    <div class="shop-item-icon"><img src="bucket.png" alt="bucket" onerror="this.style.display='none'"></div>
-    <div class="shop-item-info">
-      ${bucketOwned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
-      <div class="shop-item-name">Hydra Bucket</div>
-      <div class="shop-item-desc">Reinforced visual perimeter armor - upgrades capacity limits to 5 maximum lives.</div>
-    </div>
-    <div class="shop-item-action">
-      ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
-        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt="" onerror="this.style.display='none'"> ${bCost}</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt="" onerror="this.style.display='none'"> ${bCost}</button>`
-      }
-    </div>
-  `;
-  container.appendChild(elBucket);
-  
-  if (document.getElementById('buy-bucket-btn')) {
-    document.getElementById('buy-bucket-btn').addEventListener('click', async () => {
-      if (persist.totalPesos >= bCost) {
-        persist.totalPesos -= bCost;
-        persist.purchases.push('bucket_upgrade');
-        await saveProgress(persist);
-        renderShop();
-      }
-    });
-  }
+  const bEl = mkShopItem(
+    `<img src="bucket.png" onerror="this.style.display='none'">`,
+    bOwned ? '✓ Owned' : '+2 Lives',
+    'Hydra Bucket',
+    'Reinforced bucket — upgrades to 5 max lives.',
+    bOwned ? `<div class="btn-owned">✓ Owned</div>` : buyBtn('buy-bucket', bCost, P >= bCost)
+  );
+  if (bOwned) bEl.classList.add('owned');
+  c.appendChild(bEl);
+  if (!bOwned && P >= bCost) bEl.querySelector('#buy-bucket').onclick = async () => {
+    persist.totalPesos -= bCost; persist.purchases.push('bucket_upgrade');
+    await saveProgress(persist); renderShop();
+  };
 
-  // Frame 2: Consumable Power-up Stock Node
+  // 2. Chronos Freeze
   const tsCost = GAME_CONFIG.powerups.basePrice;
   const maxStock = GAME_CONFIG.powerups.maxConsumableStock;
-  const canAffordTS = persist.totalPesos >= tsCost;
-  const atMaxCount = persist.timestopCount >= maxStock;
-  const elTimeStop = document.createElement('div');
-  elTimeStop.className = 'shop-item';
-  elTimeStop.innerHTML = `
-    <div class="shop-item-icon"><img src="hourglass.png" alt="⏳" onerror="this.style.display='none'"></div>
-    <div class="shop-item-info">
-      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">Stock: ${persist.timestopCount}/${maxStock}</span>
-      <div class="shop-item-name">Chronos Freeze</div>
-      <div class="shop-item-desc">Completely locks all active liquid nodes stationary in mid-air for 2 seconds.</div>
-    </div>
-    <div class="shop-item-action">
-      ${atMaxCount ? `<div class="btn-owned" style="color:#ff9800; border-color:rgba(255,152,0,0.3)">MAX</div>` : canAffordTS ?
-        `<button class="btn-buy" id="buy-ts-btn"><img src="coin.png" alt=""> ${tsCost}</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> ${tsCost}</button>`
-      }
-    </div>
-  `;
-  container.appendChild(elTimeStop);
+  const atMax = persist.timestopCount >= maxStock;
+  const tsEl = mkShopItem(
+    `<img src="hourglass.png" onerror="this.textContent='⏳'">`,
+    `Stock: ${persist.timestopCount}/${maxStock}`,
+    'Chronos Freeze',
+    'Freezes all drops in mid-air for 2s.',
+    atMax ? `<div class="btn-owned" style="color:#ff9800;border-color:rgba(255,152,0,0.3)">MAX</div>`
+          : buyBtn('buy-ts', tsCost, P >= tsCost)
+  );
+  c.appendChild(tsEl);
+  if (!atMax && P >= tsCost) tsEl.querySelector('#buy-ts').onclick = async () => {
+    persist.totalPesos -= tsCost; persist.timestopCount++;
+    await saveProgress(persist); renderShop();
+  };
 
-  if (document.getElementById('buy-ts-btn')) {
-    document.getElementById('buy-ts-btn').addEventListener('click', async () => {
-      if (persist.totalPesos >= tsCost && persist.timestopCount < maxStock) {
-        persist.totalPesos -= tsCost;
-        persist.timestopCount++;
-        await saveProgress(persist);
-        renderShop();
-      }
-    });
-  }
+  // 3. Hydra Cooldown upgrade
+  const lvl = persist.timestopLevel;
+  const maxLvl = GAME_CONFIG.upgradeTiers.length;
+  const maxed = lvl >= maxLvl;
+  const nextUp = !maxed ? GAME_CONFIG.upgradeTiers[lvl] : null;
+  const upEl = mkShopItem(
+    `<img src="hourglass.png" style="filter:hue-rotate(165deg)" onerror="this.textContent='⚡'">`,
+    `LVL ${lvl}`,
+    'Hydra Cooldown',
+    maxed ? 'Maximum reached!' : nextUp.desc,
+    maxed ? `<div class="btn-owned">ELITE</div>`
+          : buyBtn('buy-ts-up', nextUp.cost, P >= nextUp.cost)
+  );
+  if (maxed) upEl.classList.add('owned');
+  c.appendChild(upEl);
+  if (!maxed && P >= nextUp.cost) upEl.querySelector('#buy-ts-up').onclick = async () => {
+    persist.totalPesos -= nextUp.cost; persist.timestopLevel++;
+    await saveProgress(persist); renderShop();
+  };
 
-  // Frame 3: Linear Progression Upgrades Tiers Node
-  const currentTierIndex = persist.timestopLevel;
-  const maxTierReached = currentTierIndex >= GAME_CONFIG.upgradeTiers.length;
-  const nextUpgrade = !maxTierReached ? GAME_CONFIG.upgradeTiers[currentTierIndex] : null;
-  const canAffordUpgrade = nextUpgrade ? persist.totalPesos >= nextUpgrade.cost : false;
+  // 4. Aqua Magnet
+  const mCost = 80;
+  const mMax = GAME_CONFIG.powerups.maxConsumableStock;
+  const mAtMax = persist.magnetCount >= mMax;
+  const mEl = mkShopItem(
+    `<span style="font-size:28px">🧲</span>`,
+    `Stock: ${persist.magnetCount}/${mMax}`,
+    'Aqua Magnet',
+    'Pulls all drops into the bucket for 10s. Can\'t use Freeze while active.',
+    mAtMax ? `<div class="btn-owned" style="color:#a78bfa;border-color:rgba(167,139,250,0.3)">MAX</div>`
+           : buyBtn('buy-magnet', mCost, P >= mCost)
+  );
+  c.appendChild(mEl);
+  if (!mAtMax && P >= mCost) mEl.querySelector('#buy-magnet').onclick = async () => {
+    persist.totalPesos -= mCost; persist.magnetCount++;
+    await saveProgress(persist); renderShop();
+  };
 
-  const elTSUpgrade = document.createElement('div');
-  elTSUpgrade.className = 'shop-item' + (maxTierReached ? ' owned' : '');
-  elTSUpgrade.innerHTML = `
-    <div class="shop-item-icon" style="background:rgba(255,215,0,0.05); border-color:rgba(255,215,0,0.2)">
-      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(165deg)" onerror="this.style.display='none'">
-    </div>
-    <div class="shop-item-info">
-      <span class="upgrade-badge">LVL ${currentTierIndex}</span>
-      <div class="shop-item-name">Hydra Cooldown</div>
-      <div class="shop-item-desc">${maxTierReached ? 'Maximum capability unlock reached!' : nextUpgrade.desc}</div>
-    </div>
-    <div class="shop-item-action">
-      ${maxTierReached ? `<div class="btn-owned">ELITE</div>` : canAffordUpgrade ?
-        `<button class="btn-buy" id="buy-ts-up-btn"><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>` :
-        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>`
-      }
-    </div>
-  `;
-  container.appendChild(elTSUpgrade);
-
-  if (document.getElementById('buy-ts-up-btn') && nextUpgrade) {
-    document.getElementById('buy-ts-up-btn').addEventListener('click', async () => {
-      if (persist.totalPesos >= nextUpgrade.cost) {
-        persist.totalPesos -= nextUpgrade.cost;
-        persist.timestopLevel++;
-        await saveProgress(persist);
-        renderShop();
-      }
-    });
-  }
+  // 5. Life Refill (one at a time, can't stack)
+  const lrCost = 120;
+  const lrOwned = persist.hasLifeRefill;
+  const lrEl = mkShopItem(
+    `<span style="font-size:28px">❤️</span>`,
+    lrOwned ? '✓ Ready' : 'One-use',
+    'Life Vessel',
+    'Instantly refills all lives mid-game. Only one can be held at a time.',
+    lrOwned ? `<div class="btn-owned" style="color:#ff6b6b;border-color:rgba(255,107,107,0.3)">✓ Ready</div>`
+            : buyBtn('buy-lr', lrCost, P >= lrCost)
+  );
+  if (lrOwned) lrEl.classList.add('owned');
+  c.appendChild(lrEl);
+  if (!lrOwned && P >= lrCost) lrEl.querySelector('#buy-lr').onclick = async () => {
+    persist.totalPesos -= lrCost; persist.hasLifeRefill = true;
+    await saveProgress(persist); renderShop();
+  };
 }
 
 /* ════════════════════════════════════════════
-   USER INPUT EVENT SYSTEM
+   INPUT
    ════════════════════════════════════════════ */
 document.getElementById('btn-play').addEventListener('click', startGame);
 document.getElementById('btn-play-again').addEventListener('click', startGame);
 document.getElementById('btn-goto-menu').addEventListener('click', showMainMenu);
-document.getElementById('btn-open-shop').addEventListener('click', () => {
-  renderShop(); showScreen('shop');
-});
+document.getElementById('btn-open-shop').addEventListener('click', () => { renderShop(); showScreen('shop'); });
 document.getElementById('btn-close-shop').addEventListener('click', showMainMenu);
 
-usePowerupBtn.addEventListener('click', (e) => {
-  e.stopPropagation(); triggerTimeStop();
-});
+btnTimeStop.addEventListener('click', e => { e.stopPropagation(); triggerTimeStop(); });
+btnMagnet.addEventListener('click',   e => { e.stopPropagation(); triggerMagnet(); });
+btnLifeRefill.addEventListener('click',e => { e.stopPropagation(); triggerLifeRefill(); });
 
 let lastTouchX = null;
-canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.touches[0].clientX; }, {passive: false});
-canvas.addEventListener('touchmove', e => {
+canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.touches[0].clientX; audioCtx.resume(); }, {passive:false});
+canvas.addEventListener('touchmove',  e => {
   e.preventDefault(); if (!gameRunning) return;
   const tx = e.touches[0].clientX, dx = tx - lastTouchX; lastTouchX = tx;
-  const sens = GAME_CONFIG.bucket.touchSpeedScale;
-  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * sens));
-}, {passive: false});
-
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * GAME_CONFIG.bucket.touchSpeedScale));
+}, {passive:false});
 canvas.addEventListener('mousemove', e => {
   if (!gameRunning) return;
-  bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.clientX - bucket.w / 2));
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.clientX - bucket.w/2));
 });
-
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const stepSize = W * GAME_CONFIG.bucket.keyboardStepRatio;
-  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - stepSize);
-  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + stepSize);
-  if (e.key === ' ' || e.key === 'Spacebar') {
-    e.preventDefault(); triggerTimeStop();
-  }
+  const step = W * GAME_CONFIG.bucket.keyboardStepRatio;
+  if (e.key === 'ArrowLeft')  bucket.targetX = Math.max(0, bucket.targetX - step);
+  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + step);
+  if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); triggerTimeStop(); }
+  if (e.key === 'm' || e.key === 'M') triggerMagnet();
+  if (e.key === 'h' || e.key === 'H') triggerLifeRefill();
 });
 
 /* ════════════════════════════════════════════
-   INITIALIZATION BOOTSTRAP
+   BOOT
    ════════════════════════════════════════════ */
 (async () => {
   await cgInit();
   await preloadAudio();
   const saved = await loadProgress();
   if (saved) {
-    persist.totalPesos = saved.totalPesos || 0;
-    persist.purchases = saved.purchases || [];
+    persist.totalPesos    = saved.totalPesos    || 0;
+    persist.purchases     = saved.purchases     || [];
     persist.timestopCount = saved.timestopCount || 0;
     persist.timestopLevel = saved.timestopLevel || 0;
+    persist.magnetCount   = saved.magnetCount   || 0;
+    persist.hasLifeRefill = saved.hasLifeRefill || false;
   }
   await Promise.all([
-    loadImg('bucket', 'bucket.png'),
-    loadImg('coin', 'coin.png'),
-    loadImg('shop', 'shop.png'),
-    loadImg('hourglass', 'hourglass.png')
+    loadImg('bucket',    'bucket.png'),
+    loadImg('coin',      'coin.png'),
+    loadImg('shop',      'shop.png'),
+    loadImg('hourglass', 'hourglass.png'),
   ]);
   resize();
   draw();
