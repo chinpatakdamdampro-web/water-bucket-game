@@ -3,79 +3,297 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Drop Catch</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
 body {
-  background:#0a1628; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  height:100vh; font-family:-apple-system,BlinkMacSystemFont,sans-serif; overflow:hidden; touch-action:none; position:fixed; width:100%;
+  background:#0a1628;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100vh; height:-webkit-fill-available;
+  font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  overflow:hidden; touch-action:none; position:fixed; width:100%;
 }
+
+/* ── HUD ── */
 #hud {
-  position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
-  padding:14px 20px; padding-top:max(env(safe-area-inset-top),14px); background:rgba(10,22,40,0.88); z-index:10;
+  position:fixed; top:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 20px;
+  padding-top:max(env(safe-area-inset-top),14px);
+  background:rgba(10,22,40,0.88); z-index:10;
   border-bottom:1px solid rgba(100,180,255,0.15);
 }
 .hud-item { display:flex; flex-direction:column; align-items:center; }
 .hud-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(160,210,255,0.6); font-weight:500; }
 .hud-value { font-size:22px; font-weight:700; color:#fff; line-height:1.1; }
 .hud-value.pesos { color:#ffd700; }
-#powerup-container { position:fixed; top:max(env(safe-area-inset-top),86px); right:20px; z-index:15; }
+.hud-lives-display { display:flex; align-items:center; gap:5px; margin-top:2px; }
+.hud-lives-count { font-size:18px; font-weight:800; color:#ff6b6b; }
+.hud-lives-label { font-size:10px; color:rgba(255,107,107,0.7); text-transform:uppercase; letter-spacing:1px; }
+
+/* ── LARGE MOBILE-FRIENDLY POWERUP CONTROLLER OVERLAY ── */
+#powerup-container {
+  position: fixed;
+  top: max(env(safe-area-inset-top), 86px);
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .powerup-btn {
-  width:72px; height:72px; background:rgba(10,22,40,0.9); border:2.5px solid #4fc3f7; border-radius:50px;
-  display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.5); position:relative;
+  width: 72px; /* Made bigger for easier tapping */
+  height: 72px;
+  background: rgba(10, 22, 40, 0.9);
+  border: 2.5px solid #4fc3f7;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+  position: relative;
+  transition: transform 0.1s;
 }
-.powerup-btn.disabled { border-color:rgba(160,210,255,0.2); opacity:0.4; cursor:not-allowed; }
-.powerup-btn img { width:42px; height:42px; object-fit:contain; }
+.powerup-btn:active {
+  transform: scale(0.9);
+}
+.powerup-btn.disabled {
+  border-color: rgba(160,210,255,0.2);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.powerup-btn img {
+  width: 42px; /* Scaling up visual assets */
+  height: 42px;
+  object-fit: contain;
+}
 .powerup-count {
-  position:absolute; bottom:-2px; right:-2px; background:#ff9800; color:#fff; font-size:12px; font-weight:800;
-  padding:3px 8px; border-radius:12px; border:2px solid #0a1628;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #ff9800;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 2px solid #0a1628;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
-.powerup-btn.active-pulse { border-color:#ffd700; animation:pulseGlow 0.8s infinite alternate; }
-@keyframes pulseGlow { 0% { box-shadow:0 0 4px rgba(255,215,0,0.4); } 100% { box-shadow:0 0 20px rgba(255,215,0,0.9); } }
+.powerup-btn.active-pulse {
+  border-color: #ffd700;
+  animation: pulseGlow 0.8s infinite alternate;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 4px rgba(255,215,0,0.4); }
+  100% { box-shadow: 0 0 20px rgba(255,215,0,0.9); }
+}
+
 canvas { display:block; touch-action:none; }
-.screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; padding:24px; background:rgba(10,22,40,0.96); }
+
+/* ── SCREENS (overlay) ── */
+.screen {
+  position:fixed; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:20; padding:24px;
+  padding-bottom:max(env(safe-area-inset-bottom),24px);
+  background:rgba(10,22,40,0.96);
+}
 .screen.hidden { display:none; }
-.menu-title { font-size:48px; font-weight:800; color:#fff; text-align:center; line-height:1.0; margin-bottom:8px; }
+
+/* ── MAIN MENU ── */
+.menu-title {
+  font-size:48px; font-weight:800; color:#fff;
+  text-align:center; line-height:1.0; margin-bottom:8px; letter-spacing:-1px;
+}
 .menu-title .accent { color:#4fc3f7; }
-.menu-sub { font-size:14px; color:rgba(160,210,255,0.6); text-align:center; margin-bottom:40px; max-width:260px; }
-.menu-pesos-badge { display:flex; align-items:center; gap:8px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.25); border-radius:12px; padding:10px 18px; margin-bottom:32px; }
-.menu-pesos-badge img { width:22px; height:22px; }
+.menu-sub {
+  font-size:14px; color:rgba(160,210,255,0.6);
+  text-align:center; margin-bottom:40px; line-height:1.6; max-width:260px;
+}
+.menu-pesos-badge {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.25);
+  border-radius:12px; padding:10px 18px; margin-bottom:32px;
+}
+.menu-pesos-badge img { width:22px; height:22px; object-fit:contain; }
 .menu-pesos-badge span { font-size:15px; color:#ffd700; font-weight:700; }
-.btn-primary { background:linear-gradient(135deg,#4fc3f7,#0288d1); border:none; border-radius:50px; padding:16px 52px; font-size:18px; font-weight:700; color:#fff; cursor:pointer; width:220px; text-align:center; }
-.btn-shop { background:transparent; border:none; margin-top:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.btn-shop img { width:220px; height:60px; object-fit:contain; }
-.btn-secondary { background:transparent; border:1.5px solid rgba(100,180,255,0.3); border-radius:50px; padding:13px 36px; font-size:15px; font-weight:600; color:rgba(160,210,255,0.75); cursor:pointer; margin-top:12px; width:220px; }
+.menu-pesos-badge .pesos-label { font-size:11px; color:rgba(255,215,0,0.6); font-weight:500; margin-left:2px; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background:linear-gradient(135deg,#4fc3f7,#0288d1);
+  border:none; border-radius:50px; padding:16px 52px;
+  font-size:18px; font-weight:700; color:#fff; cursor:pointer;
+  -webkit-user-select:none; user-select:none; min-height:54px; width:220px;
+  text-align:center;
+}
+.btn-shop {
+  background:transparent;
+  border:none;
+  border-radius:50px; padding:13px 36px;
+  font-size:18px; font-weight:600; color:rgba(255,215,100,0.85);
+  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  -webkit-user-select:none; user-select:none;
+}
+.btn-shop img { 
+  width: 220px;           
+  height: 60px;          
+  object-fit: contain;
+}
+.btn-shop.icon-only { 
+  font-size: 0;          
+  padding: 16px 52px;    
+  min-height: 56px;      
+  width: auto;           
+}
+
+.btn-secondary {
+  background:transparent;
+  border:1.5px solid rgba(100,180,255,0.3);
+  border-radius:50px; padding:13px 36px;
+  font-size:15px; font-weight:600; color:rgba(160,210,255,0.75);
+  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
+  -webkit-user-select:none; user-select:none;
+}
+.drops-tip { margin-top:20px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; }
+
+/* ── CREDIT ── */
+.credit {
+  margin-top:28px; display:flex; align-items:center; gap:4px;
+}
+.credit-text { font-size:12px; color:rgba(160,210,255,0.35); margin-right:5px; }
+.letter-o { font-size:20px; font-weight:800; color:#4fc3f7; font-style:italic; text-shadow:0 0 10px rgba(79,195,247,0.5); }
+.credit-amp { font-size:13px; color:rgba(160,210,255,0.35); margin:0 2px; }
+.letter-s {
+  font-size:22px; font-weight:900;
+  background:linear-gradient(135deg,#ffd700,#ff9800);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
+}
+
+/* ── GAME OVER SCREEN ── */
+.gameover-title {
+  font-size:40px; font-weight:800; color:#fff;
+  text-align:center; margin-bottom:8px;
+}
+.gameover-sub {
+  font-size:14px; color:rgba(160,210,255,0.65);
+  text-align:center; margin-bottom:28px; line-height:1.6; max-width:270px;
+}
 .stat-row { display:flex; gap:16px; margin-bottom:28px; }
-.stat-box { display:flex; flex-direction:column; align-items:center; background:rgba(79,195,247,0.07); border:1px solid rgba(79,195,247,0.2); border-radius:14px; padding:14px 20px; min-width:100px; }
-.stat-box-label { font-size:11px; text-transform:uppercase; color:rgba(160,210,255,0.55); }
+.stat-box {
+  display:flex; flex-direction:column; align-items:center;
+  background:rgba(79,195,247,0.07); border:1px solid rgba(79,195,247,0.2);
+  border-radius:14px; padding:14px 20px; min-width:100px;
+}
+.stat-box-label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:rgba(160,210,255,0.55); margin-bottom:4px; }
 .stat-box-value { font-size:28px; font-weight:700; color:#fff; }
 .stat-box-value.gold { color:#ffd700; }
-.shop-header { display:flex; align-items:center; justify-content:space-between; width:100%; max-width:360px; margin-bottom:20px; }
+.stat-box-icon { display:flex; align-items:center; gap:6px; }
+.stat-box-icon img { width:20px; height:20px; object-fit:contain; }
+
+/* ── SHOP SCREEN ── */
+.shop-header {
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%; max-width:360px; margin-bottom:20px;
+}
 .shop-title { font-size:28px; font-weight:800; color:#fff; }
-.shop-balance { display:flex; align-items:center; gap:6px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.2); border-radius:20px; padding:6px 14px; color:#ffd700; font-weight:700; }
-.shop-bg { width:100%; max-width:360px; border-radius:20px; background:rgba(10,22,40,0.6); margin-bottom:16px; flex:1; max-height:340px; overflow-y:auto; border:1px solid rgba(100,180,255,0.1); }
-.shop-items { padding:16px; display:flex; flex-direction:column; gap:12px; }
-.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
+.shop-balance {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.2);
+  border-radius:20px; padding:6px 14px;
+}
+.shop-balance img { width:18px; height:18px; object-fit:contain; }
+.shop-balance span { font-size:15px; font-weight:700; color:#ffd700; }
+
+.shop-bg {
+  width:100%; max-width:360px; border-radius:20px; overflow:hidden;
+  margin-bottom:16px; flex:1; max-height:340px; position:relative;
+}
+.shop-bg-img {
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:0.18; border-radius:20px;
+}
+.shop-items { position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; }
+
+.shop-item {
+  display:flex; align-items:center; gap:14px;
+  background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15);
+  border-radius:14px; padding:14px 16px;
+}
+.shop-item.owned { border-color:rgba(79,195,247,0.4); }
+.shop-item-icon {
+  width:54px; height:54px; border-radius:10px;
+  background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  overflow:hidden;
+}
+.shop-item-icon img { width:46px; height:46px; object-fit:contain; }
 .shop-item-info { flex:1; }
-.shop-item-name { font-size:15px; font-weight:700; color:#fff; }
-.shop-item-desc { font-size:12px; color:rgba(160,210,255,0.6); }
-.btn-buy { background:linear-gradient(135deg,#ffd700,#f59e00); border:none; border-radius:20px; padding:8px 14px; font-size:13px; font-weight:700; color:#3a2000; cursor:pointer; }
-.btn-buy.cant-afford { background:rgba(100,120,150,0.3); color:rgba(160,210,255,0.4); cursor:default; }
-.btn-owned { background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3); border-radius:20px; padding:8px 14px; font-size:13px; color:#4fc3f7; font-weight:700; }
-#combo-popup { position:fixed; top:90px; left:50%; transform:translateX(-50%); font-size:22px; font-weight:800; color:#ffd700; z-index:15; opacity:0; transition:opacity 0.3s; }
+.shop-item-name { font-size:15px; font-weight:700; color:#fff; margin-bottom:3px; }
+.shop-item-desc { font-size:12px; color:rgba(160,210,255,0.6); line-height:1.4; }
+.shop-item-action { flex-shrink:0; }
+.btn-buy {
+  display:flex; align-items:center; gap:5px;
+  background:linear-gradient(135deg,#ffd700,#f59e00);
+  border:none; border-radius:20px; padding:8px 14px;
+  font-size:13px; font-weight:700; color:#3a2000; cursor:pointer;
+  -webkit-user-select:none; user-select:none;
+  white-space:nowrap;
+}
+.btn-buy img { width:14px; height:14px; object-fit:contain; }
+.btn-buy.cant-afford { background:rgba(100,120,150,0.3); color:rgba(160,210,255,0.4); border:1px solid rgba(100,180,255,0.15); cursor:default; }
+.btn-owned {
+  background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3);
+  border-radius:20px; padding:8px 14px;
+  font-size:13px; font-weight:700; color:#4fc3f7;
+  white-space:nowrap;
+}
+.upgrade-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.3);
+  border-radius:6px; padding:2px 7px; font-size:11px; color:#ffd700;
+  margin-bottom:4px; font-weight:600;
+}
+
+/* ── COMBO ── */
+#combo-popup {
+  position:fixed; top:90px; left:50%; transform:translateX(-50%);
+  font-size:22px; font-weight:800; color:#ffd700;
+  z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="hud-item"><span class="hud-label">Score</span><span class="hud-value" id="hud-score">0</span></div>
-  <div class="hud-item"><div style="color:#ff6b6b; font-weight:800;" id="hud-lives-count">3</div><span class="hud-label">Lives</span></div>
-  <div class="hud-item"><span class="hud-label">Pesos</span><span class="hud-value pesos" id="hud-pesos">0</span></div>
+  <div class="hud-item">
+    <span class="hud-label">Score</span>
+    <span class="hud-value" id="hud-score">0</span>
+  </div>
+  <div class="hud-item">
+    <div class="hud-lives-display" id="hud-lives-display">
+      <span class="hud-lives-count" id="hud-lives-count">3</span>
+      <span class="hud-lives-label">Lives</span>
+    </div>
+  </div>
+  <div class="hud-item">
+    <span class="hud-label">Pesos</span>
+    <span class="hud-value pesos" id="hud-pesos">0</span>
+  </div>
 </div>
 
 <div id="powerup-container" class="hidden">
-  <button class="powerup-btn" id="btn-use-timestop">
-    <img src="hourglass.png" alt="⏳">
+  <button class="powerup-btn" id="btn-use-timestop" title="Use Time Stop (Spacebar)">
+    <img src="hourglass.png" alt="⏳" id="powerup-icon-img">
     <span class="powerup-count" id="powerup-hud-count">0</span>
   </button>
 </div>
@@ -85,47 +303,173 @@ canvas { display:block; touch-action:none; }
 
 <div class="screen" id="screen-menu">
   <div class="menu-title">Drop<br><span class="accent">Catch</span> 💧</div>
-  <div class="menu-sub">Catch falling drops!</div>
-  <div class="menu-pesos-badge"><span id="menu-pesos-count">0</span> <span>Total Pesos</span></div>
+  <div class="menu-sub">Catch falling water drops to earn <strong style="color:#ffd700">pesos</strong>. Don't miss 3!</div>
+  <div class="menu-pesos-badge">
+    <img src="coin.png" alt="peso" onerror="this.style.display='none'">
+    <span id="menu-pesos-count">0</span>
+    <span class="pesos-label">Total Pesos</span>
+  </div>
   <button class="btn-primary" id="btn-play">Play</button>
-  <button class="btn-shop" id="btn-open-shop"><img src="shop.png" alt="Shop"></button>
+  <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
+    <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
+  </button>
+  <div class="drops-tip">Swipe left/right or use Arrow Keys to move. Spacebar uses Time Stop.</div>
+  <div class="credit">
+    <span class="credit-text">Made by</span>
+    <span class="letter-o">O</span>
+    <span class="credit-amp">&amp;</span>
+    <span class="letter-s">S</span>
+  </div>
 </div>
 
 <div class="screen hidden" id="screen-gameover">
   <div class="gameover-title">Game Over 💀</div>
+  <div class="gameover-sub" id="gameover-sub">You gave it your all!</div>
   <div class="stat-row">
-    <div class="stat-box"><span class="stat-box-label">Score</span><span class="stat-box-value" id="end-score">0</span></div>
-    <div class="stat-box"><span class="stat-box-label">Pesos</span><span class="stat-box-value gold" id="end-pesos">0</span></div>
+    <div class="stat-box">
+      <span class="stat-box-label">Score</span>
+      <span class="stat-box-value" id="end-score">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-box-label">Pesos</span>
+      <div class="stat-box-icon">
+        <img src="coin.png" alt="" style="width:22px;height:22px;object-fit:contain" onerror="this.style.display='none'">
+        <span class="stat-box-value gold" id="end-pesos">0</span>
+      </div>
+    </div>
   </div>
   <button class="btn-primary" id="btn-play-again">Play Again</button>
   <button class="btn-secondary" id="btn-goto-menu">Main Menu</button>
+  <div class="credit" style="margin-top:24px">
+    <span class="credit-text">Made by</span>
+    <span class="letter-o">O</span>
+    <span class="credit-amp">&amp;</span>
+    <span class="letter-s">S</span>
+  </div>
 </div>
 
 <div class="screen hidden" id="screen-shop">
-  <div class="shop-header"><div class="shop-title">🛒 Shop</div><div class="shop-balance"><span id="shop-pesos-count">0</span></div></div>
-  <div class="shop-bg"><div class="shop-items" id="shop-items"></div></div>
-  <button class="btn-secondary" id="btn-close-shop">← Back</button>
+  <div class="shop-header">
+    <div class="shop-title">🛒 Shop</div>
+    <div class="shop-balance">
+      <img src="coin.png" alt="peso" onerror="this.style.display='none'">
+      <span id="shop-pesos-count">0</span>
+    </div>
+  </div>
+  <div class="shop-bg">
+    <img class="shop-bg-img" src="shop.png" alt="" onerror="this.style.display='none'">
+    <div class="shop-items" id="shop-items"></div>
+  </div>
+  <button class="btn-secondary" id="btn-close-shop" style="margin-top:0">← Back</button>
 </div>
 
 <script>
+/* ════════════════════════════════════════════
+   SAVE SYSTEM
+   ════════════════════════════════════════════ */
 const SAVE_KEY = 'dropcatch_save';
-let persist = { totalPesos: 0, purchases: [], timestopCount: 0, timestopLevel: 0 };
-let lives = 3, score = 0, sessionPesos = 0, combo = 0;
-let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0;
+const isCrazyGames = window.location.hostname.includes('crazygames.com')
+  || typeof window.CrazyGames !== 'undefined'
+  || (typeof window.SDK !== 'undefined' && window.SDK?.data);
+let cgSDK = null;
+
+async function cgInit() {
+  if (!isCrazyGames) return;
+  try {
+    if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+      cgSDK = window.CrazyGames.SDK;
+      await cgSDK.init();
+    }
+  } catch(e) { cgSDK = null; }
+}
+
+async function saveProgress(data) {
+  const payload = JSON.stringify(data);
+  if (cgSDK) {
+    try { await cgSDK.data.setItem(SAVE_KEY, payload); return; } catch(e) {}
+  }
+  try { localStorage.setItem(SAVE_KEY, payload); } catch(e) {}
+}
+
+async function loadProgress() {
+  if (cgSDK) {
+    try {
+      const v = await cgSDK.data.getItem(SAVE_KEY);
+      if (v) return JSON.parse(v);
+    } catch(e) {}
+  }
+  try {
+    const v = localStorage.getItem(SAVE_KEY);
+    if (v) return JSON.parse(v);
+  } catch(e) {}
+  return null;
+}
+
+/* ════════════════════════════════════════════
+   AUDIO SYSTEM
+   ════════════════════════════════════════════ */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playFallbackTimeStopSound() {
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  } catch(e){}
+}
+
+function playTimeStopAudio() {
+  const audio = new Audio('timestop.mp3');
+  audio.play().catch(() => {
+    playFallbackTimeStopSound();
+  });
+}
+
+/* ════════════════════════════════════════════
+   GAME STATE & CONFIG
+   ════════════════════════════════════════════ */
+const UPGRADE_TIERS = [
+  { level: 1, cost: 100, duration: 5000, desc: "Upgrades time stop from 4s to 5s" },
+  { level: 2, cost: 250, duration: 6000, desc: "Upgrades time stop from 5s to 6s" },
+  { level: 3, cost: 500, duration: 7000, desc: "Upgrades time stop from 6s to 7s" },
+  { level: 4, cost: 1000, duration: 8000, desc: "Upgrades time stop from 7s to 8s" }
+];
+
+let persist = { 
+  totalPesos: 0, 
+  purchases: [],
+  timestopCount: 0,
+  timestopLevel: 0
+};
+
+let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
+let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
 
+// Time Stop States
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
-let postTimeStopSlowTimer = 0; // The 5-second lingering slow-down variable
 
-const BUCKET_H = 82;         // Increased height to fix visual asset stretching
-const BUCKET_W_RATIO = 0.24; // Slimmed down width so it looks proportional
-let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
-let drops = [], particles = [];
-
+/* ════════════════════════════════════════════
+   CANVAS & TEXTURES
+   ════════════════════════════════════════════ */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
+
+// Visual Scaling Fixes for Bucket Dimensions
+const BUCKET_H = 82;         /* Increased height parameters to match visual art ratio */
+const BUCKET_W_RATIO = 0.24; /* Tweaked width ratio slightly so it doesn't look squished/fat */
+let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
+let drops = [], particles = [];
 
 const textures = {};
 function loadImg(key, src) {
@@ -137,41 +481,78 @@ function loadImg(key, src) {
   });
 }
 
+/* ════════════════════════════════════════════
+   RESIZE & HUD
+   ════════════════════════════════════════════ */
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
   bucket.w = W * BUCKET_W_RATIO;
   bucket.y = H - 110;
-  if (!gameRunning) { bucket.x = W/2 - bucket.w/2; bucket.targetX = bucket.x; }
+  if (!gameRunning) {
+    bucket.x = W / 2 - bucket.w / 2;
+    bucket.targetX = bucket.x;
+  }
 }
 window.addEventListener('resize', resize);
 resize();
 
+const hudScore = document.getElementById('hud-score');
+const hudPesos = document.getElementById('hud-pesos');
+const hudLivesCount = document.getElementById('hud-lives-count');
+const powerupHUDCount = document.getElementById('powerup-hud-count');
+const usePowerupBtn = document.getElementById('btn-use-timestop');
+
 function updateHUD() {
-  document.getElementById('hud-score').textContent = score;
-  document.getElementById('hud-pesos').textContent = sessionPesos;
-  document.getElementById('hud-lives-count').textContent = lives;
-  document.getElementById('powerup-hud-count').textContent = persist.timestopCount;
-  document.getElementById('btn-use-timestop').classList.toggle('disabled', persist.timestopCount <= 0);
+  hudScore.textContent = score;
+  hudPesos.textContent = sessionPesos;
+  hudLivesCount.textContent = lives;
+  powerupHUDCount.textContent = persist.timestopCount;
+  
+  if(persist.timestopCount <= 0) {
+    usePowerupBtn.classList.add('disabled');
+  } else {
+    usePowerupBtn.classList.remove('disabled');
+  }
 }
 
+/* ════════════════════════════════════════════
+   POWERUP LOGIC CHANNELS
+   ════════════════════════════════════════════ */
 function triggerTimeStop() {
   if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
+  
   persist.timestopCount--;
   timeStopActive = true;
-  timeStopTimeRemaining = 4000; // Base duration 4 seconds
-  postTimeStopSlowTimer = 0;    // Clear any leftover post-timers
-  document.getElementById('btn-use-timestop').classList.add('active-pulse');
+  
+  let duration = 4000; 
+  if (persist.timestopLevel > 0) {
+    duration = UPGRADE_TIERS[persist.timestopLevel - 1].duration;
+  }
+  timeStopTimeRemaining = duration;
+  
+  // Set all current active drops to slow status
+  drops.forEach(d => {
+    d.slowTimeRemaining = 3000; // Drops remain slowed for 3 seconds max
+  });
+  
+  playTimeStopAudio();
+  usePowerupBtn.classList.add('active-pulse');
   updateHUD();
-  localStorage.setItem(SAVE_KEY, JSON.stringify(persist));
+  saveProgress(persist);
 }
 
+/* ════════════════════════════════════════════
+   DROPS
+   ════════════════════════════════════════════ */
 function spawnDrop() {
   drops.push({
     x: Math.random() * (W - 32) + 16,
     y: -30,
     r: 10 + Math.random() * 5,
-    speed: dropSpeed + Math.random() * 1.5
+    speed: dropSpeed + Math.random() * 1.5,
+    wobble: Math.random() * Math.PI * 2,
+    slowTimeRemaining: timeStopActive ? 3000 : 0 // If spawned during timestop, it gets slowed for 3s
   });
 }
 
@@ -183,105 +564,181 @@ function drawDrop(d) {
   ctx.bezierCurveTo(x + r * 0.6, y - r * 0.6, x + r, y + r * 0.4, x, y + r);
   ctx.bezierCurveTo(x - r, y + r * 0.4, x - r * 0.6, y - r * 0.6, x, y - r * 1.6);
   ctx.closePath();
-  const g = ctx.createLinearGradient(x-r, y-r, x+r, y+r);
-  g.addColorStop(0, '#b4e6ff'); g.addColorStop(0.5, '#4fc3f7'); g.addColorStop(1, '#0288d1');
-  ctx.fillStyle = g; ctx.fill();
+  const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  g.addColorStop(0, 'rgba(180,230,255,0.95)');
+  g.addColorStop(0.45, 'rgba(79,195,247,0.92)');
+  g.addColorStop(1, 'rgba(2,136,209,0.88)');
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(x - r * 0.28, y - r * 0.5, r * 0.22, r * 0.36, -0.4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.fill();
   ctx.restore();
 }
 
+/* ════════════════════════════════════════════
+   BUCKET
+   ════════════════════════════════════════════ */
 function drawBucket() {
+  const {x: bx, y: by, w: bw, h: bh} = bucket;
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.ellipse(bx + bw / 2, by + bh + 5, bw * 0.44, 6, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.fill();
+
   if (textures.bucket) {
-    ctx.drawImage(textures.bucket, bucket.x, bucket.y, bucket.w, bucket.h);
+    ctx.drawImage(textures.bucket, bx, by, bw, bh);
   } else {
-    ctx.fillStyle = '#a855f7';
-    ctx.fillRect(bucket.x, bucket.y, bucket.w, bucket.h);
+    // Elegant procedural fallback layout
+    ctx.beginPath();
+    ctx.moveTo(bx - 7, by); ctx.lineTo(bx + bw + 7, by);
+    ctx.lineTo(bx + bw + 3, by + bh); ctx.lineTo(bx - 3, by + bh);
+    ctx.closePath();
+    const bg = ctx.createLinearGradient(bx, by, bx + bw, by);
+    bg.addColorStop(0, '#a855f7'); bg.addColorStop(0.5, '#c084fc'); bg.addColorStop(1, '#7e22ce');
+    ctx.fillStyle = bg; ctx.fill();
   }
+
+  ctx.restore();
 }
 
+/* ════════════════════════════════════════════
+   PARTICLES (Corrected Splash Aesthetics)
+   ════════════════════════════════════════════ */
 function spawnCatchParticles(x, y) {
-  // FIXED: Crisp transparent water blue particle splashes upon contact. No stone artifacts.
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 16; i++) {
+    const a = (Math.PI / 8) * i - Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+    const s = 1.5 + Math.random() * 4;
     particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 5,
-      vy: -(Math.random() * 4 + 2),
-      life: 1,
-      decay: 0.04,
-      color: 'rgba(79, 195, 247, '
+      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2,
+      life: 1, decay: 0.03 + Math.random() * 0.03, r: 2 + Math.random() * 3.5, water: true
     });
   }
 }
 
 function spawnMissParticles(x) {
-  for (let i = 0; i < 6; i++) {
-    particles.push({ x, y: H - 20, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 3 + 1), life: 1, decay: 0.06, color: 'rgba(239, 68, 68, ' });
+  for (let i = 0; i < 8; i++)
+    particles.push({
+      x, y: H - 20, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 3 + 1),
+      life: 1, decay: 0.05 + Math.random() * 0.04, r: 2 + Math.random() * 3, water: false
+    });
+  }
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
+    // Fixed: Always use clear splashing water blue particles instead of gray textures
+    ctx.fillStyle = p.water ? `rgba(96,165,250,${p.life})` : `rgba(239,68,68,${p.life})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
 }
 
+/* ════════════════════════════════════════════
+   BACKGROUND & COMBO
+   ════════════════════════════════════════════ */
+function drawBg() {
+  ctx.fillStyle = '#0a1628'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(100,180,255,0.05)'; ctx.lineWidth = 1;
+  for (let y = 80; y < H; y += 64) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+}
+
+const comboPopup = document.getElementById('combo-popup');
+let comboTimer = null;
+
+function showCombo(n) {
+  if (n < 3) return;
+  const m = n >= 20 ? 'UNSTOPPABLE 🔥🔥' : n >= 10 ? '10x Streak! 🔥' : n >= 5 ? '5x Combo!' : '3x Combo!';
+  comboPopup.textContent = m;
+  comboPopup.style.opacity = '1';
+  clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => { comboPopup.style.opacity = '0'; }, 1200);
+}
+
+/* ════════════════════════════════════════════
+   GAME LOOP
+   ════════════════════════════════════════════ */
 function update(dt) {
   if (!gameRunning) return;
 
-  // Handle core time-stop state changes
   if (timeStopActive) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
-      postTimeStopSlowTimer = 5000; // Trigger your requested 5-second lingering cooldown phase
-      document.getElementById('btn-use-timestop').classList.remove('active-pulse');
+      usePowerupBtn.classList.remove('active-pulse');
     }
-  } else if (postTimeStopSlowTimer > 0) {
-    postTimeStopSlowTimer -= dt; // Counts down the 5 seconds safely frame by frame
   }
 
+  // Spawning logic behaves normally
   dropTimer += dt; speedTick += dt;
   if (speedTick > 8000) {
     speedTick = 0;
     dropSpeed = Math.min(dropSpeed + 0.45, 9.5);
     dropInterval = Math.max(dropInterval - 90, 600);
   }
-  if (dropTimer > dropInterval) { dropTimer = 0; spawnDrop(); }
+  if (dropTimer > dropInterval) {
+    dropTimer = 0; spawnDrop();
+    if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
+  }
 
-  // FIXED: Bucket responsiveness multiplier raised to 0.45 to snap immediately
+  // Increased bucket interpolation coefficient from 0.2 to 0.45 for snappy response
   bucket.x += (bucket.targetX - bucket.x) * 0.45;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
     
-    // FIXED: Drops speed drops down to a slow crawl during TimeStop OR inside the 5-second lingering window
-    let currentSpeed = d.speed;
-    if (timeStopActive || postTimeStopSlowTimer > 0) {
-      currentSpeed = d.speed * 0.20; // 5x slower heavy fluid movement
+    // Decrement the local droplet slow timers down if active
+    if (d.slowTimeRemaining > 0) {
+      d.slowTimeRemaining -= dt;
     }
 
-    d.y += currentSpeed * (dt / 16);
-
-    // Collision Boundaries matching the updated taller bucket
-    if (d.y >= bucket.y && d.y <= bucket.y + 25 && d.x >= bucket.x - 4 && d.x <= bucket.x + bucket.w + 4) {
-      score++; sessionPesos += 5; combo++; updateHUD();
-      spawnCatchParticles(d.x, bucket.y);
+    // Apply drop structural calculation speed adjustments
+    let currentDropSpeed = d.speed;
+    if (timeStopActive || d.slowTimeRemaining > 0) {
+      currentDropSpeed = d.speed * 0.15; // Decreased speed multiplier to create a heavy fluid drag effect
+    }
+    
+    d.y += currentDropSpeed * (dt / 16);
+    
+    const bL = bucket.x - 6, bR = bucket.x + bucket.w + 6, bT = bucket.y - 4;
+    if (d.y + d.r >= bT && d.y - d.r < bT + 22 && d.x >= bL && d.x <= bR) {
+      score++; sessionPesos += 5; combo++;
+      waterLevel = Math.min(waterLevel + 0.06, 0.7);
+      updateHUD(); showCombo(combo);
+      spawnCatchParticles(d.x, bT);
       drops.splice(i, 1); continue;
     }
     if (d.y > H + 20) {
-      spawnMissParticles(d.x); lives--; combo = 0; updateHUD();
+      spawnMissParticles(d.x);
+      lives--; combo = 0; updateHUD();
       drops.splice(i, 1);
       if (lives <= 0) endGame();
     }
   }
-
+  waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
   for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= p.decay;
+    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
 function draw() {
-  ctx.fillStyle = '#0a1628'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  
+  if (timeStopActive) {
+    ctx.filter = "grayscale(0.5) contrast(1.25) brightness(0.95)";
+  }
+  
+  drawBg();
   for (const d of drops) drawDrop(d);
   drawBucket();
-  for (const p of particles) {
-    ctx.fillStyle = p.color + p.life + ')';
-    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
-  }
+  drawParticles();
+  
+  ctx.restore();
 }
 
 function loop(ts) {
@@ -290,82 +747,238 @@ function loop(ts) {
   if (gameRunning) animFrame = requestAnimationFrame(loop);
 }
 
-function showScreen(id) {
-  ['screen-menu', 'screen-gameover', 'screen-shop'].forEach(s => document.getElementById(s).classList.add('hidden'));
-  if(id) document.getElementById(id).classList.remove('hidden');
-  document.getElementById('powerup-container').classList.toggle('hidden', id !== null);
+/* ════════════════════════════════════════════
+   SCREENS
+   ════════════════════════════════════════════ */
+const screens = {
+  menu: document.getElementById('screen-menu'),
+  gameover: document.getElementById('screen-gameover'),
+  shop: document.getElementById('screen-shop'),
+};
+
+function showScreen(name) {
+  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
+  
+  if (name === null) {
+    document.getElementById('powerup-container').classList.remove('hidden');
+  } else {
+    document.getElementById('powerup-container').classList.add('hidden');
+  }
+}
+
+function showMainMenu() {
+  document.getElementById('menu-pesos-count').textContent = persist.totalPesos;
+  showScreen('menu');
 }
 
 function startGame() {
-  drops = []; particles = []; score = 0; sessionPesos = 0; combo = 0;
-  dropInterval = 1400; dropSpeed = 3.5; lives = 3;
-  timeStopActive = false; postTimeStopSlowTimer = 0;
-  bucket.x = W/2 - bucket.w/2; bucket.targetX = bucket.x;
-  updateHUD(); showScreen(null);
+  drops = []; particles = [];
+  score = 0; sessionPesos = 0; combo = 0;
+  dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
+  MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
+  lives = MAX_LIVES;
+  timeStopActive = false;
+  timeStopTimeRemaining = 0;
+  usePowerupBtn.classList.remove('active-pulse');
+  
+  bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
+  updateHUD(); 
+  showScreen(null);
   gameRunning = true; lastTime = performance.now();
   animFrame = requestAnimationFrame(loop);
 }
 
-function endGame() {
+async function endGame() {
   gameRunning = false; cancelAnimationFrame(animFrame);
   persist.totalPesos += sessionPesos;
-  localStorage.setItem(SAVE_KEY, JSON.stringify(persist));
+  await saveProgress(persist);
   document.getElementById('end-score').textContent = score;
   document.getElementById('end-pesos').textContent = sessionPesos;
-  showScreen('screen-gameover');
+  document.getElementById('gameover-sub').innerHTML =
+    `You caught <strong style="color:#4fc3f7">${score} drops</strong> and earned <strong style="color:#ffd700">${sessionPesos} pesos</strong>!`;
+  showScreen('gameover');
 }
 
+/* ════════════════════════════════════════════
+   SHOP ARCHITECTURE
+   ════════════════════════════════════════════ */
 function renderShop() {
   document.getElementById('shop-pesos-count').textContent = persist.totalPesos;
   const container = document.getElementById('shop-items');
-  container.innerHTML = `
-    <div class="shop-item">
-      <div class="shop-item-info">
-        <div class="shop-item-name">Time Stop Power-up</div>
-        <div class="shop-item-desc">Freezes drops momentarily, leaving a 5s slow lingering effect.</div>
-      </div>
-      <button class="btn-buy" id="buy-ts-btn">💰 160</button>
+  container.innerHTML = '';
+
+  // Element Item 1: Bucket Upgrade
+  const bucketOwned = persist.purchases.includes('bucket_upgrade');
+  const canAffordBucket = persist.totalPesos >= 15;
+  const elBucket = document.createElement('div');
+  elBucket.className = 'shop-item' + (bucketOwned ? ' owned' : '');
+  elBucket.innerHTML = `
+    <div class="shop-item-icon">
+      <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      ${bucketOwned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
+      <div class="shop-item-name">Upgraded Bucket</div>
+      <div class="shop-item-desc">A sturdier bucket — gives you 5 lives instead of 3.</div>
+    </div>
+    <div class="shop-item-action">
+      ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
+        `<button class="btn-buy" id="buy-bucket-btn">
+          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
+         </button>` :
+        `<button class="btn-buy cant-afford" disabled>
+          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
+         </button>`
+      }
     </div>
   `;
-  document.getElementById('buy-ts-btn').addEventListener('click', () => {
-    if (persist.totalPesos >= 160) {
-      persist.totalPesos -= 160; persist.timestopCount++;
-      localStorage.setItem(SAVE_KEY, JSON.stringify(persist)); renderShop();
-    }
-  });
+  container.appendChild(elBucket);
+  
+  if (document.getElementById('buy-bucket-btn')) {
+    document.getElementById('buy-bucket-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= 15) {
+        persist.totalPesos -= 15;
+        persist.purchases.push('bucket_upgrade');
+        await saveProgress(persist);
+        renderShop();
+      }
+    });
+  }
+
+  // Element Item 2: Consumable Time Stop Powerup Module
+  const canAffordTS = persist.totalPesos >= 160;
+  const atMaxCount = persist.timestopCount >= 5;
+  const elTimeStop = document.createElement('div');
+  elTimeStop.className = 'shop-item';
+  elTimeStop.innerHTML = `
+    <div class="shop-item-icon">
+      <img src="hourglass.png" alt="⏳" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">
+        Stock: ${persist.timestopCount}/5
+      </span>
+      <div class="shop-item-name">Time Stop Power-up</div>
+      <div class="shop-item-desc">Freezes all active falling liquid droplets in space temporarily. Accessible during playspace runs.</div>
+    </div>
+    <div class="shop-item-action">
+      ${atMaxCount ? `<div class="btn-owned" style="color:#ff9800; border-color:rgba(255,152,0,0.3)">MAX</div>` : canAffordTS ?
+        `<button class="btn-buy" id="buy-ts-btn"><img src="coin.png" alt=""> 160</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> 160</button>`
+      }
+    </div>
+  `;
+  container.appendChild(elTimeStop);
+
+  if (document.getElementById('buy-ts-btn')) {
+    document.getElementById('buy-ts-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= 160 && persist.timestopCount < 5) {
+        persist.totalPesos -= 160;
+        persist.timestopCount++;
+        await saveProgress(persist);
+        renderShop();
+      }
+    });
+  }
+
+  // Element Item 3: Linear Progression Upgrade Tiers
+  const currentTierIndex = persist.timestopLevel;
+  const maxTierReached = currentTierIndex >= UPGRADE_TIERS.length;
+  const nextUpgrade = !maxTierReached ? UPGRADE_TIERS[currentTierIndex] : null;
+  const canAffordUpgrade = nextUpgrade ? persist.totalPesos >= nextUpgrade.cost : false;
+
+  const elTSUpgrade = document.createElement('div');
+  elTSUpgrade.className = 'shop-item' + (maxTierReached ? ' owned' : '');
+  elTSUpgrade.innerHTML = `
+    <div class="shop-item-icon" style="background:rgba(255,215,0,0.05); border-color:rgba(255,215,0,0.2)">
+      <img src="hourglass.png" alt="⚡" style="filter:hue-rotate(45deg)" onerror="this.style.display='none'">
+    </div>
+    <div class="shop-item-info">
+      <span class="upgrade-badge">LVL ${currentTierIndex}</span>
+      <div class="shop-item-name">Chronos Upgrade</div>
+      <div class="shop-item-desc">${maxTierReached ? 'Maximum capability unlock reached!' : nextUpgrade.desc}</div>
+    </div>
+    <div class="shop-item-action">
+      ${maxTierReached ? `<div class="btn-owned">ELITE</div>` : canAffordUpgrade ?
+        `<button class="btn-buy" id="buy-ts-up-btn"><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt=""> ${nextUpgrade.cost}</button>`
+      }
+    </div>
+  `;
+  container.appendChild(elTSUpgrade);
+
+  if (document.getElementById('buy-ts-up-btn') && nextUpgrade) {
+    document.getElementById('buy-ts-up-btn').addEventListener('click', async () => {
+      if (persist.totalPesos >= nextUpgrade.cost) {
+        persist.totalPesos -= nextUpgrade.cost;
+        persist.timestopLevel++;
+        await saveProgress(persist);
+        renderShop();
+      }
+    });
+  }
 }
 
+/* ════════════════════════════════════════════
+   EVENT LISTENERS
+   ════════════════════════════════════════════ */
 document.getElementById('btn-play').addEventListener('click', startGame);
 document.getElementById('btn-play-again').addEventListener('click', startGame);
-document.getElementById('btn-goto-menu').addEventListener('click', () => {
-  document.getElementById('menu-pesos-count').textContent = persist.totalPesos;
-  showScreen('screen-menu');
+document.getElementById('btn-goto-menu').addEventListener('click', showMainMenu);
+document.getElementById('btn-open-shop').addEventListener('click', () => {
+  renderShop(); showScreen('shop');
 });
-document.getElementById('btn-open-shop').addEventListener('click', () => { renderShop(); showScreen('screen-shop'); });
-document.getElementById('btn-close-shop').addEventListener('click', () => { showScreen('screen-menu'); });
-document.getElementById('btn-use-timestop').addEventListener('click', triggerTimeStop);
+document.getElementById('btn-close-shop').addEventListener('click', showMainMenu);
 
-canvas.addEventListener('touchmove', e => {
-  if (!gameRunning) return;
-  bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.touches[0].clientX - bucket.w / 2));
+usePowerupBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  triggerTimeStop();
 });
+
+let lastTouchX = null;
+canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.touches[0].clientX; }, {passive: false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault(); if (!gameRunning) return;
+  const tx = e.touches[0].clientX, dx = tx - lastTouchX; lastTouchX = tx;
+  // Sensitivity scalar increased from 1.15 to 1.65 to boost touch velocity match tracking
+  bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * 1.65));
+}, {passive: false});
 canvas.addEventListener('mousemove', e => {
   if (!gameRunning) return;
   bucket.targetX = Math.max(0, Math.min(W - bucket.w, e.clientX - bucket.w / 2));
 });
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const step = W * 0.12; // Snappy keyboard tracking speed step
-  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - step);
-  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + step);
-  if (e.key === ' ') triggerTimeStop();
+  const s = W * 0.12; /* Keyboard movement step size multiplied (0.06 -> 0.12) */
+  if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
+  if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();
+    triggerTimeStop();
+  }
 });
 
-const saved = localStorage.getItem(SAVE_KEY);
-if (saved) persist = JSON.parse(saved);
-document.getElementById('menu-pesos-count').textContent = persist.totalPesos;
-
-Promise.all([loadImg('bucket', 'bucket.png')]).then(() => { draw(); });
+/* ════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════ */
+(async () => {
+  await cgInit();
+  const saved = await loadProgress();
+  if (saved) {
+    persist.totalPesos = saved.totalPesos || 0;
+    persist.purchases = saved.purchases || [];
+    persist.timestopCount = saved.timestopCount || 0;
+    persist.timestopLevel = saved.timestopLevel || 0;
+  }
+  await Promise.all([
+    loadImg('bucket', 'bucket.png'),
+    loadImg('coin', 'coin.png'),
+    loadImg('shop', 'shop.png'),
+    loadImg('hourglass', 'hourglass.png')
+  ]);
+  draw();
+  showMainMenu();
+})();
 </script>
 </body>
 </html>
