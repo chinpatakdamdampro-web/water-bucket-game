@@ -5,8 +5,8 @@
 const GAME_CONFIG = {
   // ── BUCKET DIMENSIONS & PLACEMENT ──
   bucket: {
-    height: 96,               // Height of the bucket image/box in pixels
-    widthRatio: 0.22,         // Width relative to viewport size (0.22 = 22% of screen width)
+    height: 200,               // Height of the bucket image/box in pixels
+    widthRatio: 0.56,         // Width relative to viewport size (0.22 = 22% of screen width)
     bottomOffset: 130,        // Distance from the bottom of the screen
     movementLerp: 0.45,       // Slide responsiveness (0.1 = loose/sluggish, 1.0 = instant tracking)
     touchSpeedScale: 1.65,    // Sensitivity multiplier for mobile drag inputs
