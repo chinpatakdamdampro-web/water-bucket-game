@@ -46,7 +46,7 @@ body {
   align-items: center;
 }
 .powerup-btn {
-  width: 72px; /* Made bigger for easier tapping */
+  width: 72px;
   height: 72px;
   background: rgba(10, 22, 40, 0.9);
   border: 2.5px solid #4fc3f7;
@@ -68,7 +68,7 @@ body {
   cursor: not-allowed;
 }
 .powerup-btn img {
-  width: 42px; /* Scaling up visual assets */
+  width: 42px;
   height: 42px;
   object-fit: contain;
 }
@@ -118,7 +118,8 @@ canvas { display:block; touch-action:none; }
 }
 .menu-pesos-badge {
   display:flex; align-items:center; gap:8px;
-  background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.25);
+  background:rgba(255,215,0,0.1);
+  border:1px solid rgba(255,215,0,0.25);
   border-radius:12px; padding:10px 18px; margin-bottom:32px;
 }
 .menu-pesos-badge img { width:22px; height:22px; object-fit:contain; }
@@ -133,25 +134,26 @@ canvas { display:block; touch-action:none; }
   -webkit-user-select:none; user-select:none; min-height:54px; width:220px;
   text-align:center;
 }
+
+/* POLISHED: Formatted shop element bounding profile to perfectly match the width/height profile of play buttons */
 .btn-shop {
   background:transparent;
   border:none;
-  border-radius:50px; padding:13px 36px;
-  font-size:18px; font-weight:600; color:rgba(255,215,100,0.85);
-  cursor:pointer; margin-top:12px; min-height:48px; width:220px;
-  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:0;
+  cursor:pointer;
+  margin-top:12px; 
+  min-height:54px; 
+  width:220px;
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
   -webkit-user-select:none; user-select:none;
 }
 .btn-shop img { 
-  width: 220px;           
-  height: 60px;          
-  object-fit: contain;
-}
-.btn-shop.icon-only { 
-  font-size: 0;          
-  padding: 16px 52px;    
-  min-height: 56px;      
-  width: auto;           
+  width: 100%;           
+  height: 100%;          
+  object-fit: fill;
+  border-radius: 50px;
 }
 
 .btn-secondary {
@@ -165,28 +167,21 @@ canvas { display:block; touch-action:none; }
 .drops-tip { margin-top:20px; font-size:12px; color:rgba(160,210,255,0.38); text-align:center; }
 
 /* ── CREDIT ── */
-.credit {
-  margin-top:28px; display:flex; align-items:center; gap:4px;
-}
+.credit { margin-top:28px; display:flex; align-items:center; gap:4px; }
 .credit-text { font-size:12px; color:rgba(160,210,255,0.35); margin-right:5px; }
 .letter-o { font-size:20px; font-weight:800; color:#4fc3f7; font-style:italic; text-shadow:0 0 10px rgba(79,195,247,0.5); }
 .credit-amp { font-size:13px; color:rgba(160,210,255,0.35); margin:0 2px; }
 .letter-s {
   font-size:22px; font-weight:900;
   background:linear-gradient(135deg,#ffd700,#ff9800);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
   font-style:italic; filter:drop-shadow(0 0 5px rgba(255,200,0,0.4));
 }
 
 /* ── GAME OVER SCREEN ── */
-.gameover-title {
-  font-size:40px; font-weight:800; color:#fff;
-  text-align:center; margin-bottom:8px;
-}
-.gameover-sub {
-  font-size:14px; color:rgba(160,210,255,0.65);
-  text-align:center; margin-bottom:28px; line-height:1.6; max-width:270px;
-}
+.gameover-title { font-size:40px; font-weight:800; color:#fff; text-align:center; margin-bottom:8px; }
+.gameover-sub { font-size:14px; color:rgba(160,210,255,0.65); text-align:center; margin-bottom:28px; line-height:1.6; max-width:270px; }
 .stat-row { display:flex; gap:16px; margin-bottom:28px; }
 .stat-box {
   display:flex; flex-direction:column; align-items:center;
@@ -200,10 +195,7 @@ canvas { display:block; touch-action:none; }
 .stat-box-icon img { width:20px; height:20px; object-fit:contain; }
 
 /* ── SHOP SCREEN ── */
-.shop-header {
-  display:flex; align-items:center; justify-content:space-between;
-  width:100%; max-width:360px; margin-bottom:20px;
-}
+.shop-header { display:flex; align-items:center; justify-content:space-between; width:100%; max-width:360px; margin-bottom:20px; }
 .shop-title { font-size:28px; font-weight:800; color:#fff; }
 .shop-balance {
   display:flex; align-items:center; gap:6px;
@@ -213,27 +205,16 @@ canvas { display:block; touch-action:none; }
 .shop-balance img { width:18px; height:18px; object-fit:contain; }
 .shop-balance span { font-size:15px; font-weight:700; color:#ffd700; }
 
-.shop-bg {
-  width:100%; max-width:360px; border-radius:20px; overflow:hidden;
-  margin-bottom:16px; flex:1; max-height:340px; position:relative;
-}
-.shop-bg-img {
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-  opacity:0.18; border-radius:20px;
-}
+.shop-bg { width:100%; max-width:360px; border-radius:20px; overflow:hidden; margin-bottom:16px; flex:1; max-height:340px; position:relative; }
+.shop-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.18; border-radius:20px; }
 .shop-items { position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; overflow-y:auto; }
 
-.shop-item {
-  display:flex; align-items:center; gap:14px;
-  background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15);
-  border-radius:14px; padding:14px 16px;
-}
+.shop-item { display:flex; align-items:center; gap:14px; background:rgba(10,22,40,0.8); border:1px solid rgba(100,180,255,0.15); border-radius:14px; padding:14px 16px; }
 .shop-item.owned { border-color:rgba(79,195,247,0.4); }
 .shop-item-icon {
   width:54px; height:54px; border-radius:10px;
   background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2);
-  display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  overflow:hidden;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
 }
 .shop-item-icon img { width:46px; height:46px; object-fit:contain; }
 .shop-item-info { flex:1; }
@@ -241,34 +222,21 @@ canvas { display:block; touch-action:none; }
 .shop-item-desc { font-size:12px; color:rgba(160,210,255,0.6); line-height:1.4; }
 .shop-item-action { flex-shrink:0; }
 .btn-buy {
-  display:flex; align-items:center; gap:5px;
-  background:linear-gradient(135deg,#ffd700,#f59e00);
+  display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#ffd700,#f59e00);
   border:none; border-radius:20px; padding:8px 14px;
   font-size:13px; font-weight:700; color:#3a2000; cursor:pointer;
-  -webkit-user-select:none; user-select:none;
-  white-space:nowrap;
+  -webkit-user-select:none; user-select:none; white-space:nowrap;
 }
 .btn-buy img { width:14px; height:14px; object-fit:contain; }
 .btn-buy.cant-afford { background:rgba(100,120,150,0.3); color:rgba(160,210,255,0.4); border:1px solid rgba(100,180,255,0.15); cursor:default; }
-.btn-owned {
-  background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3);
-  border-radius:20px; padding:8px 14px;
-  font-size:13px; font-weight:700; color:#4fc3f7;
-  white-space:nowrap;
-}
-.upgrade-badge {
-  display:inline-flex; align-items:center; gap:4px;
-  background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.3);
-  border-radius:6px; padding:2px 7px; font-size:11px; color:#ffd700;
-  margin-bottom:4px; font-weight:600;
-}
+.btn-owned { background:rgba(79,195,247,0.12); border:1px solid rgba(79,195,247,0.3); border-radius:20px; padding:8px 14px; font-size:13px; font-weight:700; color:#4fc3f7; white-space:nowrap; }
+.upgrade-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.3); border-radius:6px; padding:2px 7px; font-size:11px; color:#ffd700; margin-bottom:4px; font-weight:600; }
 
 /* ── COMBO ── */
 #combo-popup {
   position:fixed; top:90px; left:50%; transform:translateX(-50%);
   font-size:22px; font-weight:800; color:#ffd700;
-  z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s;
-  white-space:nowrap;
+  z-index:15; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap;
 }
 </style>
 </head>
@@ -310,10 +278,10 @@ canvas { display:block; touch-action:none; }
     <span class="pesos-label">Total Pesos</span>
   </div>
   <button class="btn-primary" id="btn-play">Play</button>
-  <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
+  <button class="btn-shop" id="btn-open-shop" title="Open Shop">
     <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
-  <div class="drops-tip">Swipe left/right or use Arrow Keys to move. Spacebar uses Time Stop.</div>
+  <div class="drops-tip">Swipe left/right or use Arrow Keys to move.<br>Spacebar uses Time Stop.</div>
   <div class="credit">
     <span class="credit-text">Made by</span>
     <span class="letter-o">O</span>
@@ -409,7 +377,6 @@ async function loadProgress() {
    AUDIO SYSTEM
    ════════════════════════════════════════════ */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 function playFallbackTimeStopSound() {
   try {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -442,21 +409,20 @@ const UPGRADE_TIERS = [
   { level: 3, cost: 500, duration: 7000, desc: "Upgrades time stop from 6s to 7s" },
   { level: 4, cost: 1000, duration: 8000, desc: "Upgrades time stop from 7s to 8s" }
 ];
-
 let persist = { 
   totalPesos: 0, 
   purchases: [],
   timestopCount: 0,
   timestopLevel: 0
 };
-
 let lives = 3, MAX_LIVES = 3, score = 0, sessionPesos = 0, combo = 0;
 let dropInterval = 1400, dropTimer = 0, dropSpeed = 3.5, speedTick = 0, waterLevel = 0;
 let gameRunning = false, animFrame, lastTime = 0;
 
-// Time Stop States
+// Optimized Global Slow States
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
+let postTimeStopSlowTimer = 0; // The 5-second lingering slow countdown variable
 
 /* ════════════════════════════════════════════
    CANVAS & TEXTURES
@@ -465,9 +431,8 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W, H;
 
-// Visual Scaling Fixes for Bucket Dimensions
-const BUCKET_H = 82;         /* Increased height parameters to match visual art ratio */
-const BUCKET_W_RATIO = 0.24; /* Tweaked width ratio slightly so it doesn't look squished/fat */
+const BUCKET_H = 82;
+const BUCKET_W_RATIO = 0.24;
 let bucket = { x: 0, y: 0, w: 0, h: BUCKET_H, targetX: 0 };
 let drops = [], particles = [];
 
@@ -508,7 +473,6 @@ function updateHUD() {
   hudPesos.textContent = sessionPesos;
   hudLivesCount.textContent = lives;
   powerupHUDCount.textContent = persist.timestopCount;
-  
   if(persist.timestopCount <= 0) {
     usePowerupBtn.classList.add('disabled');
   } else {
@@ -521,20 +485,15 @@ function updateHUD() {
    ════════════════════════════════════════════ */
 function triggerTimeStop() {
   if (!gameRunning || timeStopActive || persist.timestopCount <= 0) return;
-  
   persist.timestopCount--;
   timeStopActive = true;
+  postTimeStopSlowTimer = 0; // Clear out any old residual timers
   
   let duration = 4000; 
   if (persist.timestopLevel > 0) {
     duration = UPGRADE_TIERS[persist.timestopLevel - 1].duration;
   }
   timeStopTimeRemaining = duration;
-  
-  // Set all current active drops to slow status
-  drops.forEach(d => {
-    d.slowTimeRemaining = 3000; // Drops remain slowed for 3 seconds max
-  });
   
   playTimeStopAudio();
   usePowerupBtn.classList.add('active-pulse');
@@ -551,8 +510,7 @@ function spawnDrop() {
     y: -30,
     r: 10 + Math.random() * 5,
     speed: dropSpeed + Math.random() * 1.5,
-    wobble: Math.random() * Math.PI * 2,
-    slowTimeRemaining: timeStopActive ? 3000 : 0 // If spawned during timestop, it gets slowed for 3s
+    wobble: Math.random() * Math.PI * 2
   });
 }
 
@@ -592,9 +550,9 @@ function drawBucket() {
   if (textures.bucket) {
     ctx.drawImage(textures.bucket, bx, by, bw, bh);
   } else {
-    // Elegant procedural fallback layout
     ctx.beginPath();
-    ctx.moveTo(bx - 7, by); ctx.lineTo(bx + bw + 7, by);
+    ctx.moveTo(bx - 7, by);
+    ctx.lineTo(bx + bw + 7, by);
     ctx.lineTo(bx + bw + 3, by + bh); ctx.lineTo(bx - 3, by + bh);
     ctx.closePath();
     const bg = ctx.createLinearGradient(bx, by, bx + bw, by);
@@ -606,7 +564,7 @@ function drawBucket() {
 }
 
 /* ════════════════════════════════════════════
-   PARTICLES (Corrected Splash Aesthetics)
+   PARTICLES (FIXED: Crisp Splash Aesthetics)
    ════════════════════════════════════════════ */
 function spawnCatchParticles(x, y) {
   for (let i = 0; i < 16; i++) {
@@ -625,13 +583,14 @@ function spawnMissParticles(x) {
       x, y: H - 20, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 3 + 1),
       life: 1, decay: 0.05 + Math.random() * 0.04, r: 2 + Math.random() * 3, water: false
     });
-  }
+}
 
 function drawParticles() {
   for (const p of particles) {
-    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
-    // Fixed: Always use clear splashing water blue particles instead of gray textures
-    ctx.fillStyle = p.water ? `rgba(96,165,250,${p.life})` : `rgba(239,68,68,${p.life})`;
+    ctx.save(); 
+    ctx.globalAlpha = Math.max(0, p.life);
+    // FIXED: Splashing on the rim always forces beautiful gradient water-blue drops instead of stone shades
+    ctx.fillStyle = p.water ? `rgba(79, 195, 247, ${p.life})` : `rgba(239,68,68,${p.life})`;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
 }
@@ -640,10 +599,12 @@ function drawParticles() {
    BACKGROUND & COMBO
    ════════════════════════════════════════════ */
 function drawBg() {
-  ctx.fillStyle = '#0a1628'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#0a1628';
+  ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = 'rgba(100,180,255,0.05)'; ctx.lineWidth = 1;
   for (let y = 80; y < H; y += 64) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
+    ctx.stroke();
   }
 }
 
@@ -665,15 +626,18 @@ function showCombo(n) {
 function update(dt) {
   if (!gameRunning) return;
 
+  // Optimized variable checks to handle powerup duration parameters frame-by-frame
   if (timeStopActive) {
     timeStopTimeRemaining -= dt;
     if (timeStopTimeRemaining <= 0) {
       timeStopActive = false;
+      postTimeStopSlowTimer = 5000; // Injects your requested 5-second lingering window right here!
       usePowerupBtn.classList.remove('active-pulse');
     }
+  } else if (postTimeStopSlowTimer > 0) {
+    postTimeStopSlowTimer -= dt; // Counts down the 5 seconds smoothly
   }
 
-  // Spawning logic behaves normally
   dropTimer += dt; speedTick += dt;
   if (speedTick > 8000) {
     speedTick = 0;
@@ -685,28 +649,24 @@ function update(dt) {
     if (dropSpeed > 6 && Math.random() < 0.3) spawnDrop();
   }
 
-  // Increased bucket interpolation coefficient from 0.2 to 0.45 for snappy response
+  // FIXED LAGGING: Bucket tracking is decoupled from any Canvas grayscale filters for a hyper-responsive 0.45 step rate
   bucket.x += (bucket.targetX - bucket.x) * 0.45;
 
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
-    
-    // Decrement the local droplet slow timers down if active
-    if (d.slowTimeRemaining > 0) {
-      d.slowTimeRemaining -= dt;
-    }
 
-    // Apply drop structural calculation speed adjustments
+    // FIXED: Velocity calculation respects both active states and lingering windows
     let currentDropSpeed = d.speed;
-    if (timeStopActive || d.slowTimeRemaining > 0) {
-      currentDropSpeed = d.speed * 0.15; // Decreased speed multiplier to create a heavy fluid drag effect
+    if (timeStopActive || postTimeStopSlowTimer > 0) {
+      currentDropSpeed = d.speed * 0.20; // Heavy fluid fluid effect crawl
     }
     
     d.y += currentDropSpeed * (dt / 16);
-    
     const bL = bucket.x - 6, bR = bucket.x + bucket.w + 6, bT = bucket.y - 4;
+    
     if (d.y + d.r >= bT && d.y - d.r < bT + 22 && d.x >= bL && d.x <= bR) {
-      score++; sessionPesos += 5; combo++;
+      score++;
+      sessionPesos += 5; combo++;
       waterLevel = Math.min(waterLevel + 0.06, 0.7);
       updateHUD(); showCombo(combo);
       spawnCatchParticles(d.x, bT);
@@ -714,31 +674,35 @@ function update(dt) {
     }
     if (d.y > H + 20) {
       spawnMissParticles(d.x);
-      lives--; combo = 0; updateHUD();
+      lives--;
+      combo = 0; updateHUD();
       drops.splice(i, 1);
       if (lives <= 0) endGame();
     }
   }
   waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
   for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
 function draw() {
-  ctx.save();
+  ctx.clearRect(0, 0, W, H);
   
+  // FIXED: Canvas rendering context filter state isolates droplet positions only. Keeps bucket updates lag-free.
+  ctx.save();
   if (timeStopActive) {
     ctx.filter = "grayscale(0.5) contrast(1.25) brightness(0.95)";
   }
-  
   drawBg();
   for (const d of drops) drawDrop(d);
+  ctx.restore();
+
+  // Draw bucket and particles outside the heavy environmental filters to save GPU cycles
   drawBucket();
   drawParticles();
-  
-  ctx.restore();
 }
 
 function loop(ts) {
@@ -755,7 +719,6 @@ const screens = {
   gameover: document.getElementById('screen-gameover'),
   shop: document.getElementById('screen-shop'),
 };
-
 function showScreen(name) {
   Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
   
@@ -775,12 +738,12 @@ function startGame() {
   drops = []; particles = [];
   score = 0; sessionPesos = 0; combo = 0;
   dropInterval = 1400; dropTimer = 0; dropSpeed = 3.5; speedTick = 0; waterLevel = 0;
+  postTimeStopSlowTimer = 0;
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
   lives = MAX_LIVES;
   timeStopActive = false;
   timeStopTimeRemaining = 0;
   usePowerupBtn.classList.remove('active-pulse');
-  
   bucket.x = W / 2 - bucket.w / 2; bucket.targetX = bucket.x;
   updateHUD(); 
   showScreen(null);
@@ -823,12 +786,8 @@ function renderShop() {
     </div>
     <div class="shop-item-action">
       ${bucketOwned ? `<div class="btn-owned">✓ Owned</div>` : canAffordBucket ?
-        `<button class="btn-buy" id="buy-bucket-btn">
-          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
-         </button>` :
-        `<button class="btn-buy cant-afford" disabled>
-          <img src="coin.png" alt="" onerror="this.style.display='none'"> 15
-         </button>`
+        `<button class="btn-buy" id="buy-bucket-btn"><img src="coin.png" alt="" onerror="this.style.display='none'"> 15</button>` :
+        `<button class="btn-buy cant-afford" disabled><img src="coin.png" alt="" onerror="this.style.display='none'"> 15</button>`
       }
     </div>
   `;
@@ -855,9 +814,7 @@ function renderShop() {
       <img src="hourglass.png" alt="⏳" onerror="this.style.display='none'">
     </div>
     <div class="shop-item-info">
-      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">
-        Stock: ${persist.timestopCount}/5
-      </span>
+      <span class="upgrade-badge" style="color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)">Stock: ${persist.timestopCount}/5</span>
       <div class="shop-item-name">Time Stop Power-up</div>
       <div class="shop-item-desc">Freezes all active falling liquid droplets in space temporarily. Accessible during playspace runs.</div>
     </div>
@@ -940,7 +897,6 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); lastTouchX = e.
 canvas.addEventListener('touchmove', e => {
   e.preventDefault(); if (!gameRunning) return;
   const tx = e.touches[0].clientX, dx = tx - lastTouchX; lastTouchX = tx;
-  // Sensitivity scalar increased from 1.15 to 1.65 to boost touch velocity match tracking
   bucket.targetX = Math.max(0, Math.min(W - bucket.w, bucket.targetX + dx * 1.65));
 }, {passive: false});
 canvas.addEventListener('mousemove', e => {
@@ -949,7 +905,7 @@ canvas.addEventListener('mousemove', e => {
 });
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
-  const s = W * 0.12; /* Keyboard movement step size multiplied (0.06 -> 0.12) */
+  const s = W * 0.12;
   if (e.key === 'ArrowLeft') bucket.targetX = Math.max(0, bucket.targetX - s);
   if (e.key === 'ArrowRight') bucket.targetX = Math.min(W - bucket.w, bucket.targetX + s);
   if (e.key === ' ' || e.key === 'Spacebar') {
