@@ -83,7 +83,8 @@ canvas { display:block; touch-action:none; }
   display:flex; align-items:center; justify-content:center; gap:8px;
   -webkit-user-select:none; user-select:none;
 }
-.btn-shop img { width:20px; height:20px; object-fit:contain; }
+.btn-shop img { width:32px; height:32px; object-fit:contain; }
+.btn-shop.icon-only { font-size: 0; padding: 13px 26px; }
 .btn-secondary {
   background:transparent;
   border:1.5px solid rgba(100,180,255,0.3);
@@ -235,9 +236,8 @@ canvas { display:block; touch-action:none; }
     <span class="pesos-label">Total Pesos</span>
   </div>
   <button class="btn-primary" id="btn-play">Play</button>
-  <button class="btn-shop" id="btn-open-shop">
-    <img src="shop.png" alt="" onerror="this.style.display='none'">
-    Shop
+  <button class="btn-shop icon-only" id="btn-open-shop" title="Open Shop">
+    <img src="shop.png" alt="Shop" onerror="this.style.display='none'">
   </button>
   <div class="drops-tip">Swipe left or right to move the bucket</div>
   <div class="credit">
@@ -475,8 +475,26 @@ function drawBucket() {
   ctx.fill();
 
   if (textures.bucket) {
-    // Draw custom texture
+    // Draw custom texture with water droplet effect
     ctx.drawImage(textures.bucket, bx - 8, by - 10, bw + 16, bh + 14);
+    
+    // Add water droplet effect on top of texture
+    const dropletX = bx + bw * 0.35;
+    const dropletY = by + bh * 0.25;
+    const dropletSize = 5 + Math.sin(Date.now()/300) * 2;
+    
+    // Main droplet
+    ctx.beginPath();
+    ctx.arc(dropletX, dropletY, dropletSize, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(180,230,255,0.7)';
+    ctx.fill();
+    
+    // Highlight on droplet
+    ctx.beginPath();
+    ctx.arc(dropletX - dropletSize*0.4, dropletY - dropletSize*0.4, dropletSize*0.4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fill();
+    
   } else {
     // Fallback drawn bucket
     ctx.beginPath();
@@ -683,7 +701,7 @@ function renderShop() {
         <img src="bucket.png" alt="bucket" onerror="this.style.display='none'">
       </div>
       <div class="shop-item-info">
-        ${owned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.07)">${item.stat}</span>`}
+        ${owned ? '<span class="upgrade-badge">✓ Owned</span>' : `<span class="upgrade-badge" style="color:rgba(160,210,255,0.7);border-color:rgba(100,180,255,0.25);background:rgba(79,195,247,0.08)">Cost</span>`}
         <div class="shop-item-name">${item.name}</div>
         <div class="shop-item-desc">${item.desc}</div>
       </div>
