@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Drop Catch</title>
+<title>Aqua Blitz</title>
 <!-- Load external config if served from a server; inline fallback covers direct file:// open -->
 <script src="config.js" onerror="window.__configFailed=true"></script>
 <script>
@@ -302,7 +302,7 @@ canvas { display:block; touch-action:none; }
 
 <!-- MAIN MENU -->
 <div class="screen" id="screen-menu">
-  <div class="menu-title">Drop<br><span class="accent">Catch</span> 💧</div>
+  <div class="menu-title">Aqua<br><span class="accent">Blitz</span> 💧</div>
   <div class="menu-sub">Catch falling water drops to earn <strong style="color:#ffd700">pesos</strong>. Don't miss 3!</div>
   <div class="menu-pesos-badge">
     <img src="coin.png" alt="peso" onerror="this.style.display='none'">
@@ -484,6 +484,7 @@ let playTimeMs = 0; // milliseconds played this session
 let timeStopActive = false;
 let timeStopTimeRemaining = 0;
 let postTimeStopSlowTimer = 0;
+let postTimeStopSlowDuration = 5000; // tracks actual slow window for ramp calc
 const POST_SLOW_SCALE = 0.22; // drop speed during slow-down phase
 const POST_SLOW_CATCHUP_RATE = 0.08; // per drop per frame: ramp back up gently
 
@@ -551,6 +552,8 @@ const btnTimeStop  = document.getElementById('btn-use-timestop');
 const btnMagnet    = document.getElementById('btn-use-magnet');
 const btnLifeRefill= document.getElementById('btn-use-liferefill');
 const powerupContainer = document.getElementById('powerup-container');
+const magnetBarWrap = document.getElementById('magnet-bar-wrap');
+const magnetBarFill = document.getElementById('magnet-bar-fill');
 
 function fmtTime(ms) {
   const s = Math.floor(ms / 1000);
@@ -577,12 +580,11 @@ function updateHUD() {
   btnLifeRefill.classList.toggle('disabled', !hasRefill || lives >= MAX_LIVES);
 
   // Magnet progress bar
-  const barWrap = document.getElementById('magnet-bar-wrap');
   if (magnetActive) {
-    barWrap.style.display = 'flex';
-    document.getElementById('magnet-bar-fill').style.width = (magnetTimeRemaining / MAGNET_DURATION * 100) + '%';
+    magnetBarWrap.style.display = 'flex';
+    magnetBarFill.style.width = (magnetTimeRemaining / MAGNET_DURATION * 100) + '%';
   } else {
-    barWrap.style.display = 'none';
+    magnetBarWrap.style.display = 'none';
   }
 }
 
@@ -879,6 +881,7 @@ function update(dt) {
       btnTimeStop.classList.remove('active-pulse');
       let slowWindow = 5000;
       if (persist.timestopLevel > 0) slowWindow = GAME_CONFIG.upgradeTiers[persist.timestopLevel-1].slowDuration;
+      postTimeStopSlowDuration = slowWindow;
       postTimeStopSlowTimer = slowWindow;
       // Spread drops out vertically so they don't all hit at once
       _spreadDropsAfterFreeze();
@@ -897,10 +900,10 @@ function update(dt) {
     }
   }
 
-  // ── Difficulty ramp — first kicks in after 90s, then every 30s ──
+  // ── Difficulty ramp — first kicks in after 90s, then every interval from config ──
   dropTimer += dt; speedTick += dt;
   const RAMP_START_MS = 90000;  // don't ramp until 1m30s
-  const RAMP_STEP_MS  = 30000;  // then ramp every 30s
+  const RAMP_STEP_MS  = GAME_CONFIG.drops.difficultyTimeStep || 30000;
   if (playTimeMs >= RAMP_START_MS && speedTick > RAMP_STEP_MS) {
     speedTick = 0;
     dropSpeed    = Math.min(dropSpeed    + GAME_CONFIG.drops.speedDifficultyStep,    GAME_CONFIG.drops.maxSpeed);
@@ -926,9 +929,9 @@ function update(dt) {
         const bCx = bucket.x + bucket.w / 2;
         const bCy = bucket.y + bucket.h / 2;
         const dx = bCx - d.x, dy = bCy - d.y;
-        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-        d.x += dx / dist * dist * MAGNET_PULL_FORCE;
-        d.y += dy / dist * dist * MAGNET_PULL_FORCE;
+        // Proportional pull: drops move MAGNET_PULL_FORCE fraction of their distance per frame
+        d.x += dx * MAGNET_PULL_FORCE;
+        d.y += dy * MAGNET_PULL_FORCE;
       }
     }
 
@@ -938,7 +941,7 @@ function update(dt) {
       spd = 0;
     } else if (postTimeStopSlowTimer > 0) {
       // Ramp from POST_SLOW_SCALE back to full speed gradually
-      const pct = 1 - (postTimeStopSlowTimer / 5000);
+      const pct = 1 - (postTimeStopSlowTimer / postTimeStopSlowDuration);
       const rampFactor = POST_SLOW_SCALE + (1 - POST_SLOW_SCALE) * Math.min(pct, 1);
       spd = d.speed * rampFactor;
     } else {
@@ -975,11 +978,14 @@ function update(dt) {
       spawnMissParticles(d.x);
       lives--; combo = 0; updateHUD();
       drops.splice(i, 1);
-      if (lives <= 0) endGame();
+      if (lives <= 0) { endGame(); break; }
     }
   }
 
   waterLevel = Math.max(0, waterLevel - 0.0002 * dt);
+
+  // Early-exit if endGame() fired inside the drop loop above
+  if (!gameRunning) return;
 
   // ── Particles ──
   for (let i = particles.length-1; i >= 0; i--) {
@@ -987,8 +993,6 @@ function update(dt) {
     p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
-
-  updateHUD();
 }
 
 // Spread drops evenly after time stop so they don't all arrive at same frame
@@ -1052,13 +1056,14 @@ function showMainMenu() {
 }
 
 function startGame() {
+  cancelAnimationFrame(animFrame); // cancel any stale loop before starting fresh
   drops = []; particles = [];
   score = 0; sessionPesos = 0; combo = 0;
   dropInterval = GAME_CONFIG.drops.baseInterval;
   dropTimer = 0; dropSpeed = GAME_CONFIG.drops.baseSpeed;
   speedTick = 0; waterLevel = 0; playTimeMs = 0;
   postTimeStopSlowTimer = 0;
-  timeStopActive = false; timeStopTimeRemaining = 0;
+  timeStopActive = false; timeStopTimeRemaining = 0; postTimeStopSlowDuration = 5000;
   magnetActive = false; magnetTimeRemaining = 0;
   currentMaxTier = 0; tierUnlockShown = 0;
   goldenTimer = 0; nextGoldenAt = _randomGoldenInterval();
@@ -1074,6 +1079,7 @@ function startGame() {
 }
 
 async function endGame() {
+  if (!gameRunning) return; // guard: prevent double-call from same frame
   gameRunning = false; cancelAnimationFrame(animFrame);
   persist.totalPesos += sessionPesos;
   await saveProgress(persist);
@@ -1248,12 +1254,13 @@ window.addEventListener('keydown', e => {
   await preloadAudio();
   const saved = await loadProgress();
   if (saved) {
-    persist.totalPesos    = saved.totalPesos    || 0;
-    persist.purchases     = saved.purchases     || [];
-    persist.timestopCount = saved.timestopCount || 0;
-    persist.timestopLevel = saved.timestopLevel || 0;
-    persist.magnetCount   = saved.magnetCount   || 0;
-    persist.hasLifeRefill = saved.hasLifeRefill || false;
+    const safeInt  = (v, min, max) => Math.min(max, Math.max(min, Number.isFinite(+v) ? Math.floor(+v) : 0));
+    persist.totalPesos    = safeInt(saved.totalPesos, 0, 99999999);
+    persist.purchases     = Array.isArray(saved.purchases) ? saved.purchases.filter(p => typeof p === 'string') : [];
+    persist.timestopCount = safeInt(saved.timestopCount, 0, GAME_CONFIG.powerups.maxConsumableStock);
+    persist.timestopLevel = safeInt(saved.timestopLevel, 0, GAME_CONFIG.upgradeTiers.length);
+    persist.magnetCount   = safeInt(saved.magnetCount, 0, GAME_CONFIG.powerups.maxConsumableStock);
+    persist.hasLifeRefill = !!saved.hasLifeRefill;
   }
   await Promise.all([
     loadImg('bucket',    'bucket.png'),
