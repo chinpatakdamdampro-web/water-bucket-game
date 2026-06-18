@@ -2,14 +2,14 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -18,18 +18,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm install
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
+      - name: Configure Bubblewrap
+        run: bubblewrap updateConfig --androidSdkPath="$ANDROID_SDK_ROOT"
+
       - name: Build APK
-        run: |
-          bubblewrap updateConfig --androidSdkPath=$ANDROID_HOME
-          bubblewrap build
+        run: bubblewrap build
