@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Aqua Blitz</title>
+<link rel="manifest" href="manifest.json">
 <!-- Load external config if served from a server; inline fallback covers direct file:// open -->
 <script src="config.js" onerror="window.__configFailed=true"></script>
 <script>
@@ -19,6 +20,7 @@ if (typeof GAME_CONFIG === 'undefined') {
       movementLerp: 0.45, touchSpeedScale: 1.65, keyboardStepRatio: 0.12
     },
     physics: {
+      rimYOffset: 40,           // px to push collision zone DOWN (increase if drops catch above visible rim)
       catchTopThreshold: 12, catchBottomThreshold: 36,
       edgeWidthPercent: 0.10, edgeHeightThreshold: 18
     },
@@ -27,11 +29,13 @@ if (typeof GAME_CONFIG === 'undefined') {
       baseSpeed: 3.5, maxSpeed: 7.5,
       speedDifficultyStep: 0.18, intervalDifficultyStep: 40,
       difficultyTimeStep: 30000,
-      radiusMin: 10, radiusMax: 15, scatterVariance: 1.2
+      radiusMin: 10, radiusMax: 15, scatterVariance: 1.2,
+      bombChance: 0.08
     },
     powerups: {
       timeStopFreezeDuration: 2000, maxConsumableStock: 5,
-      basePrice: 160, reinforcedRimPrice: 15
+      basePrice: 160, reinforcedRimPrice: 15,
+      magnetDuration: 20000, magnetRainbowCap: 7
     },
     particles: {
       catchCount: 16, edgeExplosionCount: 18, missCount: 8,
@@ -491,7 +495,8 @@ const POST_SLOW_CATCHUP_RATE = 0.08; // per drop per frame: ramp back up gently
 // Magnet
 let magnetActive = false;
 let magnetTimeRemaining = 0;
-const MAGNET_DURATION = 10000; // 10 seconds
+let rainbowCaughtByMagnet = 0;          // tracks rainbow drops pulled THIS activation (module-level, not per-frame)
+const MAGNET_DURATION = GAME_CONFIG.powerups.magnetDuration || 20000;
 const MAGNET_PULL_RADIUS = 999; // pulls all drops on screen
 const MAGNET_PULL_FORCE = 0.055; // fraction of distance per frame
 
@@ -619,6 +624,9 @@ function showTierBanner(msg) {
    SPAWN DROP
    ════════════════════════════════════════════ */
 function pickDropTier() {
+  // Bomb: random chance each spawn (only after first few seconds so player isn't blindsided)
+  if (playTimeMs > 5000 && Math.random() < (GAME_CONFIG.drops.bombChance || 0)) return 'bomb';
+
   // golden: rare random
   goldenTimer += dropInterval; // approximate — we check per spawn
   if (goldenTimer >= nextGoldenAt) {
@@ -667,7 +675,35 @@ function spawnDrop() {
 /* ════════════════════════════════════════════
    DRAW DROP
    ════════════════════════════════════════════ */
+function drawBomb(d) {
+  ctx.save();
+  const sz = Math.round(d.r * 3.6);
+  ctx.font = `${sz}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Pulsing red glow to make it clearly dangerous
+  ctx.shadowColor = 'rgba(255,50,0,0.9)';
+  ctx.shadowBlur = 10 + Math.sin(Date.now() / 160) * 7;
+  ctx.fillText('💣', d.x, d.y);
+  ctx.restore();
+}
+
+function spawnBombParticles(x, y) {
+  for (let i = 0; i < 26; i++) {
+    const a = (Math.PI * 2 / 26) * i + (Math.random() - 0.5) * 0.5;
+    const v = 2.5 + Math.random() * 5.5;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5,
+      life: 1, decay: 0.025 + Math.random() * 0.025,
+      r: 3 + Math.random() * 4,
+      col: Math.random() < 0.5 ? 'rgba(255,80,0,' : 'rgba(255,200,0,'
+    });
+  }
+}
+
 function drawDrop(d) {
+  if (d.tier === 'bomb') { drawBomb(d); return; }
   ctx.save();
   const {x, y, r, tier} = d;
   ctx.beginPath();
@@ -833,6 +869,7 @@ function triggerMagnet() {
   persist.magnetCount--;
   magnetActive = true;
   magnetTimeRemaining = MAGNET_DURATION;
+  rainbowCaughtByMagnet = 0;       // reset cap counter for this activation
   _playSynth(440, 880, 0.2); // synth only — not the timestop MP3
   btnMagnet.classList.add('magnet-active');
   updateHUD();
@@ -852,6 +889,7 @@ function triggerLifeRefill() {
    PESOS FOR DROP
    ════════════════════════════════════════════ */
 function pesosForDrop(tier) {
+  if (tier === 'bomb') return 0;
   if (tier === 'golden') {
     const baseTier = TIER_CONFIG[currentMaxTier] || TIER_CONFIG[0];
     return baseTier.pesos * GOLDEN_MULTIPLIER;
@@ -895,6 +933,8 @@ function update(dt) {
     magnetTimeRemaining -= dt;
     if (magnetTimeRemaining <= 0) {
       magnetActive = false;
+      magnetTimeRemaining = 0;
+      rainbowCaughtByMagnet = 0;
       btnMagnet.classList.remove('magnet-active');
       updateHUD();
     }
@@ -918,14 +958,14 @@ function update(dt) {
   bucket.x += (bucket.targetX - bucket.x) * GAME_CONFIG.bucket.movementLerp;
 
   // ── Drop updates ──
-  let rainbowCaughtByMagnet = 0;
   for (let i = drops.length-1; i >= 0; i--) {
     const d = drops[i];
 
-    // Magnet pull
-    if (magnetActive) {
-      const rainbowCap = (d.tier === 3) ? rainbowCaughtByMagnet < 7 : true;
-      if (rainbowCap) {
+    // Magnet pull — never attracts bombs; rainbow drops have an activation cap
+    if (magnetActive && d.tier !== 'bomb') {
+      const cap = GAME_CONFIG.powerups.magnetRainbowCap || 7;
+      const rainbowOk = (d.tier === 3) ? rainbowCaughtByMagnet < cap : true;
+      if (rainbowOk) {
         const bCx = bucket.x + bucket.w / 2;
         const bCy = bucket.y + bucket.h / 2;
         const dx = bCx - d.x, dy = bCy - d.y;
@@ -953,10 +993,26 @@ function update(dt) {
     // ── Collision ──
     const bL = bucket.x;
     const bR = bucket.x + bucket.w;
-    const bT = bucket.y;
+    // rimYOffset shifts the hit zone downward to match the visible bucket rim
+    // (bucket.png has transparent space above the rim; increase rimYOffset in config.js to fix early catches)
+    const bT = bucket.y + (GAME_CONFIG.physics.rimYOffset || 0);
 
     if (d.y + d.r >= bT && d.y - d.r <= bT + bucket.h) {
       if (d.x >= bL && d.x <= bR) {
+
+        // ── Bomb catch ──
+        if (d.tier === 'bomb') {
+          const dmg = lives <= 3 ? 2 : 4;
+          lives = Math.max(0, lives - dmg);
+          combo = 0;
+          spawnBombParticles(d.x, d.y);
+          _playSynth(60, 30, 0.7);   // low boom
+          updateHUD();
+          drops.splice(i, 1);
+          if (lives <= 0) { endGame(); break; }
+          continue;
+        }
+
         const edgePx = bucket.w * GAME_CONFIG.physics.edgeWidthPercent;
         const isCorner = (d.x <= bL + edgePx || d.x >= bR - edgePx) && d.y <= bT + GAME_CONFIG.physics.edgeHeightThreshold;
 
@@ -975,8 +1031,10 @@ function update(dt) {
     }
 
     if (d.y > H + 20) {
-      spawnMissParticles(d.x);
-      lives--; combo = 0; updateHUD();
+      if (d.tier !== 'bomb') {
+        spawnMissParticles(d.x);
+        lives--; combo = 0; updateHUD();
+      }
       drops.splice(i, 1);
       if (lives <= 0) { endGame(); break; }
     }
@@ -1064,7 +1122,7 @@ function startGame() {
   speedTick = 0; waterLevel = 0; playTimeMs = 0;
   postTimeStopSlowTimer = 0;
   timeStopActive = false; timeStopTimeRemaining = 0; postTimeStopSlowDuration = 5000;
-  magnetActive = false; magnetTimeRemaining = 0;
+  magnetActive = false; magnetTimeRemaining = 0; rainbowCaughtByMagnet = 0;
   currentMaxTier = 0; tierUnlockShown = 0;
   goldenTimer = 0; nextGoldenAt = _randomGoldenInterval();
   MAX_LIVES = persist.purchases.includes('bucket_upgrade') ? 5 : 3;
@@ -1249,6 +1307,11 @@ window.addEventListener('keydown', e => {
 /* ════════════════════════════════════════════
    BOOT
    ════════════════════════════════════════════ */
+// Register service worker for PWA/offline support (required for Play Store via TWA)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
 (async () => {
   await cgInit();
   await preloadAudio();
