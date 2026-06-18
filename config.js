@@ -16,6 +16,9 @@ const GAME_CONFIG = {
   // ── COLLISION & HITBOX TOLERANCES ──
   // These control the exact coordinate triggers for catching drops inside vs hitting the edges
   physics: {
+    rimYOffset: 40,           // Pixels to push the collision zone DOWN from the top of the bucket image.
+                              // Increase this if drops appear to be caught above the visible bucket rim.
+                              // Decrease (or set to 0) if they're caught too late (inside the bucket).
     catchTopThreshold: 12,    // How many pixels down inside the rim a drop must sink to count as "caught"
     catchBottomThreshold: 36, // Maximum vertical range inside the bucket to capture the drop
     edgeWidthPercent: 0.10,   // Outer margins of the rim considered "corners" (0.10 = outer 10% on left and right)
@@ -33,7 +36,8 @@ const GAME_CONFIG = {
     difficultyTimeStep: 8000, // Time in milliseconds between difficulty tier ramps (8000 = 8 seconds)
     radiusMin: 10,            // Smallest pixel radius size variation of a drop
     radiusMax: 15,            // Largest pixel radius size variation of a drop
-    scatterVariance: 1.2      // ANTI-CLUMPING: Horizontal/vertical offset spread variance applied to drops
+    scatterVariance: 1.2,     // ANTI-CLUMPING: Horizontal/vertical offset spread variance applied to drops
+    bombChance: 0.08          // Probability (0–1) that any given spawn is a 💣 bomb instead of a water drop
   },
 
   // ── POWERUP BALANCING ──
@@ -41,7 +45,9 @@ const GAME_CONFIG = {
     timeStopFreezeDuration: 2000,   // Locked solid freeze time frame window in milliseconds (2000 = 2 seconds)
     maxConsumableStock: 5,          // Maximum powerup charges a player can carry at once
     basePrice: 160,                 // Shop cost to buy a single Chronos Freeze charge
-    reinforcedRimPrice: 15          // Shop cost to buy the permanent health upgrade
+    reinforcedRimPrice: 15,         // Shop cost to buy the permanent health upgrade
+    magnetDuration: 20000,          // How long the magnet stays active in ms (20s ≈ 14 drops at base pace)
+    magnetRainbowCap: 7             // Max rainbow drops the magnet will attract per activation
   },
 
   // ── VISUAL EFFECTS & SPARKLE PARTICLES ──
