@@ -9,8 +9,8 @@
   "theme_color": "#0a1628",
   "icons": [
     {
-      "src": "bucket.png",
-      "sizes": "any",
+      "src": "icon.png",
+      "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "any"
     }
