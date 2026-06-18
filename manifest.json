@@ -1,6 +1,7 @@
 {
   "name": "Aqua Blitz",
   "short_name": "AquaBlitz",
+  "id": "com.o&s.aquablitz",
   "description": "Catch falling water drops, dodge bombs, and earn pesos!",
   "start_url": "/",
   "display": "standalone",
@@ -13,6 +14,13 @@
       "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png"
     }
   ],
   "categories": ["games"],
