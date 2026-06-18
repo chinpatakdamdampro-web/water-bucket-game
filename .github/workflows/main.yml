@@ -3,10 +3,15 @@ name: Build APK
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}   # lets you also trigger it manually from the Actions tab
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -24,8 +29,42 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Configure Bubblewrap
-        run: bubblewrap updateConfig --androidSdkPath="$ANDROID_SDK_ROOT"
+      - name: Prepare TWA project folder
+        run: mkdir -p twa-project
 
-      - name: Build APK
-        run: bubblewrap build
+      - name: Copy pre-built twa-manifest.json
+        run: cp twa-manifest.json twa-project/twa-manifest.json
+        # twa-manifest.json lives in your repo root — see below for how to create it once.
+        # This file fully replaces the need for `bubblewrap init`, so no interactive prompts ever run.
+
+      - name: Restore signing keystore from secret
+        working-directory: ./twa-project
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
+          fi
+
+      - name: Generate keystore if none exists yet (first run only)
+        working-directory: ./twa-project
+        run: |
+          if [ ! -f android.keystore ]; then
+            keytool -genkeypair -v -keystore android.keystore -alias androidkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" \
+              -keypass "$BUBBLEWRAP_KEY_PASSWORD" \
+              -dname "CN=AquaBlitz, OU=OS Studios, O=OS Studios, L=Unknown, S=Unknown, C=US"
+            echo "NEW KEYSTORE GENERATED -- copy android.keystore as a backup NOW and store its base64 as the ANDROID_KEYSTORE_BASE64 secret so future builds reuse the same key."
+          fi
+
+      - name: Build signed APK/AAB
+        working-directory: ./twa-project
+        run: bubblewrap build --skipPwaValidation
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aqua-blitz-build
+          path: |
+            twa-project/app-release-signed.apk
+            twa-project/app-release-bundle.aab
+            twa-project/android.keystore
